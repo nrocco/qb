@@ -18,18 +18,21 @@ type InsertQuery struct {
 }
 
 // Columns determines the columns to insert
-func (q *InsertQuery) Columns(columns ...string) {
+func (q *InsertQuery) Columns(columns ...string) *InsertQuery {
 	q.columns = columns
+	return q
 }
 
 // Values determines the columns to insert
-func (q *InsertQuery) Values(values ...interface{}) {
+func (q *InsertQuery) Values(values ...interface{}) *InsertQuery {
 	q.values = values
+	return q
 }
 
 // Returning can be used to choose which columns to return after the INSERT is succesful
-func (q *InsertQuery) Returning(returning ...string) {
+func (q *InsertQuery) Returning(returning ...string) *InsertQuery {
 	q.returning = returning
+	return q
 }
 
 func (q *InsertQuery) Exec() (sql.Result, error) {

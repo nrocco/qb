@@ -19,20 +19,23 @@ type UpdateQuery struct {
 }
 
 // Set adds a column = value statement to the UPDATE querie's SET clause
-func (q *UpdateQuery) Set(column string, values ...interface{}) {
+func (q *UpdateQuery) Set(column string, values ...interface{}) *UpdateQuery {
 	q.columns = append(q.columns, column)
 	q.values = append(q.values, values...)
+	return q
 }
 
 // Where adds a where clause to the update query using *AND* strategy
-func (q *UpdateQuery) Where(condition string, params ...interface{}) {
+func (q *UpdateQuery) Where(condition string, params ...interface{}) *UpdateQuery {
 	q.wheres = append(q.wheres, condition)
 	q.params = append(q.params, params...)
+	return q
 }
 
 // Returning can be used to choose which columns to return after the UPDATE is succesful
-func (q *UpdateQuery) Returning(returning ...string) {
+func (q *UpdateQuery) Returning(returning ...string) *UpdateQuery {
 	q.returning = returning
+	return q
 }
 
 func (q *UpdateQuery) Exec() (sql.Result, error) {

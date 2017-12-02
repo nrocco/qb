@@ -15,9 +15,10 @@ type DeleteQuery struct {
 }
 
 // Where adds a where clause to the select query using *AND* strategy
-func (q *DeleteQuery) Where(condition string, params ...interface{}) {
+func (q *DeleteQuery) Where(condition string, params ...interface{}) *DeleteQuery {
 	q.wheres = append(q.wheres, condition)
 	q.params = append(q.params, params...)
+	return q
 }
 
 func (q *DeleteQuery) Exec() (sql.Result, error) {

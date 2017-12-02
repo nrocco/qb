@@ -22,42 +22,49 @@ type SelectQuery struct {
 }
 
 // Columns determines with columns to select
-func (q *SelectQuery) Columns(columns ...string) {
+func (q *SelectQuery) Columns(columns ...string) *SelectQuery {
 	q.columns = columns
+	return q
 }
 
 // Join adds a join to the select query
-func (q *SelectQuery) Join(join string) {
+func (q *SelectQuery) Join(join string) *SelectQuery {
 	q.joins = append(q.joins, join)
+	return q
 }
 
 // Where adds a where clause to the select query using *AND* strategy
-func (q *SelectQuery) Where(condition string, params ...interface{}) {
+func (q *SelectQuery) Where(condition string, params ...interface{}) *SelectQuery {
 	q.wheres = append(q.wheres, condition)
 	q.params = append(q.params, params...)
+	return q
 }
 
 // OrderBy adds an ORDER BY clause to the SELECT query
-func (q *SelectQuery) OrderBy(column string, direction string) {
+func (q *SelectQuery) OrderBy(column string, direction string) *SelectQuery {
 	if direction != "DESC" {
 		direction = "ASC"
 	}
 	q.orderBys = append(q.orderBys, column+" "+direction)
+	return q
 }
 
 // GroupBy adds a GROUP BY clause to the SELECT query
-func (q *SelectQuery) GroupBy(column string) {
+func (q *SelectQuery) GroupBy(column string) *SelectQuery {
 	q.groupBys = append(q.groupBys, column)
+	return q
 }
 
 // Limit adds a LIMIT clause to the SELECT query
-func (q *SelectQuery) Limit(limit int) {
+func (q *SelectQuery) Limit(limit int) *SelectQuery {
 	q.limit = fmt.Sprintf("%d", limit)
+	return q
 }
 
 // Offset adds a OFFSET clause to the SELECT query
-func (q *SelectQuery) Offset(offset int) {
+func (q *SelectQuery) Offset(offset int) *SelectQuery {
 	q.offset = fmt.Sprintf("%d", offset)
+	return q
 }
 
 func (q *SelectQuery) Load(value interface{}) (int, error) {
