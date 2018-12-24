@@ -2,7 +2,9 @@ package qb
 
 import (
 	"database/sql"
+	"database/sql/driver"
 	"encoding/json"
+	"time"
 )
 
 var nullString = []byte("null")
@@ -49,4 +51,51 @@ func (n *NullInt64) UnmarshalJSON(b []byte) error {
 		return err
 	}
 	return n.Scan(s)
+}
+
+var nullTime = []byte("null")
+
+type NullTime struct {
+	time.Time
+	Valid bool
+}
+
+// Scan a raw value and wrap it in NullTime
+func (nt *NullTime) Scan(value interface{}) error {
+	nt.Time, nt.Valid = value.(time.Time)
+	return nil
+}
+
+// Value returns the underlying value Time
+func (nt NullTime) Value() (driver.Value, error) {
+	if !nt.Valid {
+		return nil, nil
+	}
+	return nt.Time, nil
+}
+
+// MarshalJSON correctly serializes a NullTime to JSON
+func (nt NullTime) MarshalJSON() ([]byte, error) {
+	if nt.Valid {
+		return json.Marshal(nt.Time)
+	}
+	return nullTime, nil
+}
+
+// UnmarshalJSON correctly deserializes a NullTime from JSON
+func (nt *NullTime) UnmarshalJSON(b []byte) error {
+	var s string
+	if err := json.Unmarshal(b, &s); err != nil {
+		return err
+	}
+
+	if s == "" {
+		return nt.Scan(s)
+	}
+
+	t, err := time.Parse(time.RFC3339, s)
+	if err != nil {
+		return err
+	}
+	return nt.Scan(t)
 }
