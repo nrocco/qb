@@ -77,6 +77,13 @@ func (db *DB) Update(table string) *UpdateQuery {
 	}
 }
 
+// Begin starts a transaction. The default isolation level is dependent on the driver
+func (db *DB) Begin() (*Tx, error) {
+	tx, err := db.DB.Begin()
+
+	return &Tx{tx, db.logger}, err
+}
+
 // Log uses the logger function of the database to log internals
 func (db *DB) Log(format string, v ...interface{}) {
 	db.logger(format, v...)
