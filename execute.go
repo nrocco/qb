@@ -16,7 +16,7 @@ func query(runner runner, builder Builder, dest interface{}) (int, error) {
 
 	query, params := buf.String(), builder.Params()
 
-	// fmt.Printf("%s -- %v\n", query, params)
+	runner.Log("%s -- %v\n", query, params)
 
 	rows, err := runner.Query(query, params...)
 	if err != nil {
@@ -41,7 +41,7 @@ func exec(runner runner, builder Builder) (sql.Result, error) {
 
 	query, params := buf.String(), builder.Params()
 
-	// fmt.Printf("%s -- %v\n", query, params)
+	runner.Log("%s -- %v\n", query, params)
 
 	result, err := runner.Exec(query, params...)
 	if err != nil {

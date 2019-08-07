@@ -8,14 +8,19 @@ import (
 	_ "github.com/mattn/go-sqlite3"
 )
 
+// Logger logs
+type Logger func(format string, v ...interface{})
+
 // DB represents the database
 type DB struct {
 	*sql.DB
+	logger Logger
 }
 
 type runner interface {
 	Exec(query string, args ...interface{}) (sql.Result, error)
 	Query(query string, args ...interface{}) (*sql.Rows, error)
+	Log(format string, v ...interface{})
 }
 
 // Builder is implemented by all types of query builders
@@ -25,7 +30,7 @@ type Builder interface {
 }
 
 // Open initializes the database
-func Open(conn string) (*DB, error) {
+func Open(conn string, logger Logger) (*DB, error) {
 	var err error
 
 	db, err := sql.Open("sqlite3", conn)
@@ -37,7 +42,7 @@ func Open(conn string) (*DB, error) {
 		return &DB{}, err
 	}
 
-	return &DB{db}, nil
+	return &DB{db, logger}, nil
 }
 
 // Delete creates and returns a new instance of DeleteQuery for the specified table
@@ -70,4 +75,9 @@ func (db *DB) Update(table string) *UpdateQuery {
 		runner: db,
 		table:  table,
 	}
+}
+
+// Log uses the logger function of the database to log internals
+func (db *DB) Log(format string, v ...interface{}) {
+	db.logger(format, v...)
 }
