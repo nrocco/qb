@@ -3,6 +3,7 @@ package qb
 import (
 	"bytes"
 	"database/sql"
+	"fmt"
 
 	// We assume sqlite
 	_ "github.com/mattn/go-sqlite3"
@@ -20,7 +21,6 @@ type DB struct {
 type runner interface {
 	Exec(query string, args ...interface{}) (sql.Result, error)
 	Query(query string, args ...interface{}) (*sql.Rows, error)
-	Log(format string, v ...interface{})
 }
 
 // Builder is implemented by all types of query builders
@@ -43,6 +43,18 @@ func Open(conn string, logger Logger) (*DB, error) {
 	}
 
 	return &DB{db, logger}, nil
+}
+
+func (db *DB) Exec(query string, args ...interface{}) (sql.Result, error) {
+	db.logger("%s -- %v", query, args)
+
+	return db.DB.Exec(query, args...)
+}
+
+func (db *DB) Query(query string, args ...interface{}) (*sql.Rows, error) {
+	db.logger("%s -- %v", query, args)
+
+	return db.DB.Query(query, args...)
 }
 
 // Delete creates and returns a new instance of DeleteQuery for the specified table
@@ -77,14 +89,23 @@ func (db *DB) Update(table string) *UpdateQuery {
 	}
 }
 
-// Begin starts a transaction. The default isolation level is dependent on the driver
-func (db *DB) Begin() (*Tx, error) {
-	tx, err := db.DB.Begin()
+// Savepoint starts a savepoint.
+func (db *DB) Savepoint(name string) error {
+	_, err := db.Exec(fmt.Sprintf("SAVEPOINT %s", name))
 
-	return &Tx{tx, db.logger}, err
+	return err
 }
 
-// Log uses the logger function of the database to log internals
-func (db *DB) Log(format string, v ...interface{}) {
-	db.logger(format, v...)
+// ReleaseSavepoint commits a savepoint.
+func (db *DB) ReleaseSavepoint(name string) error {
+	_, err := db.Exec(fmt.Sprintf("RELEASE SAVEPOINT %s", name))
+
+	return err
+}
+
+// RollbackSavepoint rolls back a savepoint.
+func (db *DB) RollbackSavepoint(name string) error {
+	_, err := db.Exec(fmt.Sprintf("ROLLBACK TO SAVEPOINT %s", name))
+
+	return err
 }
