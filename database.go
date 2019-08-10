@@ -109,3 +109,10 @@ func (db *DB) RollbackSavepoint(name string) error {
 
 	return err
 }
+
+// Begin starts a transaction. The default isolation level is dependent on the driver
+func (db *DB) Begin() (*Tx, error) {
+	tx, err := db.DB.Begin()
+
+	return &Tx{tx}, err
+}
