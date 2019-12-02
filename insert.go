@@ -10,11 +10,17 @@ import (
 // InsertQuery represents a INSERT sql query
 type InsertQuery struct {
 	runner
+	orIgnore  bool
 	table     string
 	columns   []string
 	values    []interface{}
 	returning []string
 	recordID  reflect.Value
+}
+
+func (q *InsertQuery) OrIgnore() *InsertQuery {
+	q.orIgnore = true
+	return q
 }
 
 // Columns determines the columns to insert
@@ -78,7 +84,11 @@ func (q *InsertQuery) Record(structValue interface{}) {
 
 // Build renders the INSERT query as a string
 func (q *InsertQuery) Build(buf *bytes.Buffer) error {
-	buf.WriteString("INSERT INTO ")
+	if q.orIgnore {
+		buf.WriteString("INSERT OR IGNORE INTO ")
+	} else {
+		buf.WriteString("INSERT INTO ")
+	}
 	buf.WriteString(q.table)
 	if len(q.columns) > 0 {
 		buf.WriteString(" (")
