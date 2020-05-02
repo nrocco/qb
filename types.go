@@ -2,7 +2,6 @@ package qb
 
 import (
 	"database/sql"
-	"database/sql/driver"
 	"encoding/json"
 	"time"
 )
@@ -59,22 +58,7 @@ var nullTime = []byte("null")
 
 // NullTime is a wrapper around time.Time that plays nice with SQL and JSON
 type NullTime struct {
-	time.Time
-	Valid bool
-}
-
-// Scan a raw value and wrap it in NullTime
-func (nt *NullTime) Scan(value interface{}) error {
-	nt.Time, nt.Valid = value.(time.Time)
-	return nil
-}
-
-// Value returns the underlying value Time
-func (nt NullTime) Value() (driver.Value, error) {
-	if !nt.Valid {
-		return nil, nil
-	}
-	return nt.Time, nil
+	sql.NullTime
 }
 
 // MarshalJSON serializes a NullTime to JSON
@@ -93,7 +77,7 @@ func (nt *NullTime) UnmarshalJSON(b []byte) error {
 	}
 
 	if s == "" {
-		return nt.Scan(s)
+		return nt.Scan(nil)
 	}
 
 	t, err := time.Parse(time.RFC3339, s)
