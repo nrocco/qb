@@ -47,14 +47,18 @@ func Open(conn string, logger Logger) (*DB, error) {
 
 // Exec executes the given SQL query against the database
 func (db *DB) Exec(query string, args ...interface{}) (sql.Result, error) {
-	db.logger("%s -- %v", query, args)
+	if db.logger != nil {
+		db.logger("%s -- %v", query, args)
+	}
 
 	return db.DB.Exec(query, args...)
 }
 
 // Query executes the given SQL query against the database
 func (db *DB) Query(query string, args ...interface{}) (*sql.Rows, error) {
-	db.logger("%s -- %v", query, args)
+	if db.logger != nil {
+		db.logger("%s -- %v", query, args)
+	}
 
 	return db.DB.Query(query, args...)
 }
