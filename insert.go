@@ -60,28 +60,28 @@ func (q *InsertQuery) Exec() (sql.Result, error) {
 
 // Record scans the result of the query into the given struct
 func (q *InsertQuery) Record(structValue interface{}) {
-	v := reflect.Indirect(reflect.ValueOf(structValue))
+	value := reflect.Indirect(reflect.ValueOf(structValue))
 
-	if v.Kind() == reflect.Struct {
-		var value []interface{}
-		m := structMap(v)
-		for _, key := range q.columns {
-			if val, ok := m[key]; ok {
-				value = append(value, val.Interface())
+	if value.Kind() == reflect.Struct {
+		var values []interface{}
+		structFields := structMap(value)
+		for _, column := range q.columns {
+			if val, ok := structFields[column]; ok {
+				values = append(values, val.Interface())
 			} else {
-				value = append(value, nil)
+				values = append(values, nil)
 			}
 		}
 
 		for _, name := range []string{"Id", "ID"} {
-			field := v.FieldByName(name)
+			field := value.FieldByName(name)
 			if field.IsValid() && field.Kind() == reflect.Int64 {
 				q.recordID = field
 				break
 			}
 		}
 
-		q.Values(value...)
+		q.Values(values...)
 	}
 }
 
