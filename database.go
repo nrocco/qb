@@ -23,7 +23,7 @@ type runner interface {
 	Query(query string, args ...interface{}) (*sql.Rows, error)
 }
 
-// Builder is implemented by all types of query builders
+// Builder is the interface for all query builders
 type Builder interface {
 	Build(buf *bytes.Buffer) error
 	Params() []interface{}
@@ -45,12 +45,14 @@ func Open(conn string, logger Logger) (*DB, error) {
 	return &DB{db, logger}, nil
 }
 
+// Exec executes the given SQL query against the database
 func (db *DB) Exec(query string, args ...interface{}) (sql.Result, error) {
 	db.logger("%s -- %v", query, args)
 
 	return db.DB.Exec(query, args...)
 }
 
+// Query executes the given SQL query against the database
 func (db *DB) Query(query string, args ...interface{}) (*sql.Rows, error) {
 	db.logger("%s -- %v", query, args)
 

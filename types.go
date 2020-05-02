@@ -9,11 +9,12 @@ import (
 
 var nullString = []byte("null")
 
+// NullString is a wrapper around sql.NullString that plays nice with JSON
 type NullString struct {
 	sql.NullString
 }
 
-// MarshalJSON correctly serializes a NullString to JSON
+// MarshalJSON serializes a NullString to JSON
 func (n NullString) MarshalJSON() ([]byte, error) {
 	if n.Valid {
 		return json.Marshal(n.String)
@@ -21,7 +22,7 @@ func (n NullString) MarshalJSON() ([]byte, error) {
 	return nullString, nil
 }
 
-// UnmarshalJSON correctly deserializes a NullString from JSON
+// UnmarshalJSON deserializes a NullString from JSON
 func (n *NullString) UnmarshalJSON(b []byte) error {
 	var s interface{}
 	if err := json.Unmarshal(b, &s); err != nil {
@@ -32,11 +33,12 @@ func (n *NullString) UnmarshalJSON(b []byte) error {
 
 var nullInt64 = []byte("null")
 
+// NullInt64 is a wrapper around sql.NullInt64 that plays nice with JSON
 type NullInt64 struct {
 	sql.NullInt64
 }
 
-// MarshalJSON correctly serializes a NullInt64 to JSON
+// MarshalJSON serializes a NullInt64 to JSON
 func (n NullInt64) MarshalJSON() ([]byte, error) {
 	if n.Valid {
 		return json.Marshal(n.Int64)
@@ -44,7 +46,7 @@ func (n NullInt64) MarshalJSON() ([]byte, error) {
 	return nullInt64, nil
 }
 
-// UnmarshalJSON correctly deserializes a NullInt64 from JSON
+// UnmarshalJSON deserializes a NullInt64 from JSON
 func (n *NullInt64) UnmarshalJSON(b []byte) error {
 	var s interface{}
 	if err := json.Unmarshal(b, &s); err != nil {
@@ -55,6 +57,7 @@ func (n *NullInt64) UnmarshalJSON(b []byte) error {
 
 var nullTime = []byte("null")
 
+// NullTime is a wrapper around time.Time that plays nice with SQL and JSON
 type NullTime struct {
 	time.Time
 	Valid bool
@@ -74,7 +77,7 @@ func (nt NullTime) Value() (driver.Value, error) {
 	return nt.Time, nil
 }
 
-// MarshalJSON correctly serializes a NullTime to JSON
+// MarshalJSON serializes a NullTime to JSON
 func (nt NullTime) MarshalJSON() ([]byte, error) {
 	if nt.Valid {
 		return json.Marshal(nt.Time)
@@ -82,7 +85,7 @@ func (nt NullTime) MarshalJSON() ([]byte, error) {
 	return nullTime, nil
 }
 
-// UnmarshalJSON correctly deserializes a NullTime from JSON
+// UnmarshalJSON deserializes a NullTime from JSON
 func (nt *NullTime) UnmarshalJSON(b []byte) error {
 	var s string
 	if err := json.Unmarshal(b, &s); err != nil {

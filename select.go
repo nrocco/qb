@@ -67,10 +67,12 @@ func (q *SelectQuery) Offset(offset int) *SelectQuery {
 	return q
 }
 
+// Load will execute the query and scan the result into the given struct
 func (q *SelectQuery) Load(value interface{}) (int, error) {
 	return query(q.runner, q, value)
 }
 
+// LoadValue will execute the query and scan the scalar result into the given variable
 func (q *SelectQuery) LoadValue(value interface{}) error {
 	rows, err := query(q.runner, q, value)
 	if err != nil {
@@ -84,11 +86,12 @@ func (q *SelectQuery) LoadValue(value interface{}) error {
 	return nil
 }
 
+// Params returns the parameters for this query
 func (q *SelectQuery) Params() []interface{} {
 	return q.params
 }
 
-// ToSQL renders the SELECT query as a string
+// Build renders the SELECT query as a string
 func (q *SelectQuery) Build(buf *bytes.Buffer) error {
 	buf.WriteString("SELECT ")
 

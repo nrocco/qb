@@ -18,6 +18,7 @@ type InsertQuery struct {
 	recordID  reflect.Value
 }
 
+// OrIgnore make the query behave using INSERT OR IGNORE INTO
 func (q *InsertQuery) OrIgnore() *InsertQuery {
 	q.orIgnore = true
 	return q
@@ -35,12 +36,13 @@ func (q *InsertQuery) Values(values ...interface{}) *InsertQuery {
 	return q
 }
 
-// Returning can be used to choose which columns to return after the INSERT is succesful
+// Returning specifies with columns to return after the INSERT is successful
 func (q *InsertQuery) Returning(returning ...string) *InsertQuery {
 	q.returning = returning
 	return q
 }
 
+// Exec executes the query
 func (q *InsertQuery) Exec() (sql.Result, error) {
 	result, err := exec(q.runner, q)
 	if err != nil {
@@ -56,6 +58,7 @@ func (q *InsertQuery) Exec() (sql.Result, error) {
 	return result, nil
 }
 
+// Record scans the result of the query into the given struct
 func (q *InsertQuery) Record(structValue interface{}) {
 	v := reflect.Indirect(reflect.ValueOf(structValue))
 
@@ -97,8 +100,8 @@ func (q *InsertQuery) Build(buf *bytes.Buffer) error {
 	}
 
 	buf.WriteString(" VALUES (")
-	fuus := []string{} // TODO this can be done better
-	for _, _ = range q.values {
+	fuus := []string{} // TODO make this better
+	for range q.values {
 		fuus = append(fuus, "?")
 	}
 	buf.WriteString(strings.Join(fuus, ", "))
@@ -112,6 +115,7 @@ func (q *InsertQuery) Build(buf *bytes.Buffer) error {
 	return nil
 }
 
+// Params returns all parameters for the query
 func (q *InsertQuery) Params() []interface{} {
 	return q.values
 }

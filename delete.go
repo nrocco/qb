@@ -21,10 +21,12 @@ func (q *DeleteQuery) Where(condition string, params ...interface{}) *DeleteQuer
 	return q
 }
 
+// Exec executes the query
 func (q *DeleteQuery) Exec() (sql.Result, error) {
 	return exec(q.runner, q)
 }
 
+// Params returns the parameters for this query
 func (q *DeleteQuery) Params() []interface{} {
 	return q.params
 }

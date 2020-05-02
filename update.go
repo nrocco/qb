@@ -32,16 +32,18 @@ func (q *UpdateQuery) Where(condition string, params ...interface{}) *UpdateQuer
 	return q
 }
 
-// Returning can be used to choose which columns to return after the UPDATE is succesful
+// Returning specifies with columns to return after the UPDATE is successful
 func (q *UpdateQuery) Returning(returning ...string) *UpdateQuery {
 	q.returning = returning
 	return q
 }
 
+// Exec executes the query
 func (q *UpdateQuery) Exec() (sql.Result, error) {
 	return exec(q.runner, q)
 }
 
+// Params returns all parameters for the query
 func (q *UpdateQuery) Params() []interface{} {
 	return append(q.values, q.params...)
 }
