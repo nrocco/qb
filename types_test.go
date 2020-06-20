@@ -34,7 +34,10 @@ func TestNullStringUnmarshalInvalid(t *testing.T) {
 }
 
 func TestNullStringMarshalValid(t *testing.T) {
-	value := NullString{sql.NullString{"test", true}}
+	value := NullString{sql.NullString{
+		String: "test",
+		Valid:  true,
+	}}
 	expected := []byte("\"test\"")
 
 	result, err := json.Marshal(value)
@@ -86,7 +89,10 @@ func TestNullInt64UnmarshalInvalid(t *testing.T) {
 }
 
 func TestNullInt64MarshalValid(t *testing.T) {
-	value := NullInt64{sql.NullInt64{123, true}}
+	value := NullInt64{sql.NullInt64{
+		Int64: 123,
+		Valid: true,
+	}}
 	expected := []byte("123")
 
 	result, err := json.Marshal(value)
@@ -138,7 +144,10 @@ func TestNullTimeUnmarshalInvalid(t *testing.T) {
 }
 
 func TestNullTimeValid(t *testing.T) {
-	value := NullTime{sql.NullTime{time.Date(2015, 9, 18, 0, 0, 0, 0, time.UTC), true}}
+	value := NullTime{sql.NullTime{
+		Time:  time.Date(2015, 9, 18, 0, 0, 0, 0, time.UTC),
+		Valid: true,
+	}}
 	expected := []byte("\"2015-09-18T00:00:00Z\"")
 
 	result, err := json.Marshal(value)

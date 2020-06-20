@@ -4,7 +4,7 @@ import (
 	"testing"
 )
 
-const schema = `CREATE TABLE notes (
+const notesSchema = `CREATE TABLE notes (
 	id INTEGER PRIMARY KEY AUTOINCREMENT,
 	name VARCHAR(64) NOT NULL UNIQUE,
 	content VARCHAR(255) NULL
@@ -16,14 +16,16 @@ type note struct {
 	Content string
 }
 
-func createTestDB(t *testing.T, fixtures string) *DB {
+func createTestDB(t *testing.T, schema string, fixtures string) *DB {
 	db, err := Open(":memory:", nil)
 	if err != nil {
 		t.Fatal(err)
 	}
 
-	if _, err = db.Exec(schema); err != nil {
-		t.Fatalf("Could not create test schema: %s", err)
+	if schema != "" {
+		if _, err = db.Exec(schema); err != nil {
+			t.Fatalf("Could not create test schema: %s", err)
+		}
 	}
 
 	if fixtures != "" {
@@ -47,7 +49,7 @@ func TestOpenDatabase(t *testing.T) {
 }
 
 func TestSelectFromDatabase(t *testing.T) {
-	db := createTestDB(t, `INSERT INTO notes (id, name, content) VALUES
+	db := createTestDB(t, notesSchema, `INSERT INTO notes (id, name, content) VALUES
 	(1, "Fuu", "This is bar"),
 	(2, "Test", "This is fuu")`)
 
@@ -74,7 +76,7 @@ func TestSelectFromDatabase(t *testing.T) {
 }
 
 func TestInsertIntoDatabase(t *testing.T) {
-	db := createTestDB(t, "")
+	db := createTestDB(t, notesSchema, "")
 	defer db.Close()
 
 	note := note{
@@ -96,7 +98,7 @@ func TestInsertIntoDatabase(t *testing.T) {
 }
 
 func TestUpdateIntoDatabase(t *testing.T) {
-	db := createTestDB(t, `INSERT INTO notes (id, name, content) VALUES (1, "Fuu", "This is bar");`)
+	db := createTestDB(t, notesSchema, `INSERT INTO notes (id, name, content) VALUES (1, "Fuu", "This is bar");`)
 	defer db.Close()
 
 	note := note{}
@@ -125,7 +127,7 @@ func TestUpdateIntoDatabase(t *testing.T) {
 }
 
 func TestDeleteIntoDatabase(t *testing.T) {
-	db := createTestDB(t, `INSERT INTO notes (id, name, content) VALUES (1, "Fuu", "This is bar");`)
+	db := createTestDB(t, notesSchema, `INSERT INTO notes (id, name, content) VALUES (1, "Fuu", "This is bar");`)
 	defer db.Close()
 
 	totalCount := 0
