@@ -116,16 +116,16 @@ func (q *InsertQuery) Build(buf *bytes.Buffer) error {
 	buf.WriteString(strings.Join(fuus, ", "))
 	buf.WriteString(")")
 
+	if len(q.returning) > 0 {
+		buf.WriteString(" RETURNING ")
+		buf.WriteString(strings.Join(q.returning, ", "))
+	}
+
 	if q.conflictColumn != "" {
 		buf.WriteString(" ON CONFLICT (")
 		buf.WriteString(q.conflictColumn)
 		buf.WriteString(") DO UPDATE SET ")
 		buf.WriteString(q.conflictSets)
-	}
-
-	if len(q.returning) > 0 {
-		buf.WriteString(" RETURNING ")
-		buf.WriteString(strings.Join(q.returning, ", "))
 	}
 
 	return nil
