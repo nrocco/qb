@@ -10,12 +10,14 @@ import (
 // InsertQuery represents a INSERT sql query
 type InsertQuery struct {
 	runner
-	orIgnore  bool
-	table     string
-	columns   []string
-	values    []interface{}
-	returning []string
-	recordID  reflect.Value
+	orIgnore       bool
+	table          string
+	columns        []string
+	values         []interface{}
+	conflictColumn string
+	conflictSets   string
+	returning      []string
+	recordID       reflect.Value
 }
 
 // OrIgnore make the query behave using INSERT OR IGNORE INTO
@@ -33,6 +35,13 @@ func (q *InsertQuery) Columns(columns ...string) *InsertQuery {
 // Values determines the columns to insert
 func (q *InsertQuery) Values(values ...interface{}) *InsertQuery {
 	q.values = values
+	return q
+}
+
+// OnConflict specifies what to do if there is conflict
+func (q *InsertQuery) OnConflict(column string, sets string) *InsertQuery {
+	q.conflictColumn = column
+	q.conflictSets = sets
 	return q
 }
 
@@ -106,6 +115,13 @@ func (q *InsertQuery) Build(buf *bytes.Buffer) error {
 	}
 	buf.WriteString(strings.Join(fuus, ", "))
 	buf.WriteString(")")
+
+	if q.conflictColumn != "" {
+		buf.WriteString(" ON CONFLICT (")
+		buf.WriteString(q.conflictColumn)
+		buf.WriteString(") DO UPDATE SET ")
+		buf.WriteString(q.conflictSets)
+	}
 
 	if len(q.returning) > 0 {
 		buf.WriteString(" RETURNING ")
