@@ -7,7 +7,8 @@ import (
 
 // JSONValue is a convenient function to implement the Valuer interface for json columns
 func JSONValue(value interface{}) (driver.Value, error) {
-	return json.Marshal(value)
+	v, err := json.Marshal(value)
+	return string(v), err
 }
 
 // JSONScan is a convenient function to implement the Scanner interface for json columns
