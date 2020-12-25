@@ -1,6 +1,7 @@
 package qb
 
 import (
+	"context"
 	"testing"
 )
 
@@ -17,7 +18,7 @@ type note struct {
 }
 
 func createTestDB(t *testing.T, schema string, fixtures string) *DB {
-	db, err := Open(":memory:", nil)
+	db, err := Open(context.TODO(), ":memory:", nil)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -38,7 +39,7 @@ func createTestDB(t *testing.T, schema string, fixtures string) *DB {
 }
 
 func TestOpenDatabase(t *testing.T) {
-	db, err := Open(":memory:", nil)
+	db, err := Open(context.TODO(), ":memory:", nil)
 	if err != nil {
 		t.Fatal(err)
 	}

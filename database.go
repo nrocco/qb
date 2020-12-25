@@ -2,6 +2,7 @@ package qb
 
 import (
 	"bytes"
+	"context"
 	"database/sql"
 	"fmt"
 
@@ -19,8 +20,8 @@ type DB struct {
 }
 
 type runner interface {
-	Exec(query string, args ...interface{}) (sql.Result, error)
-	Query(query string, args ...interface{}) (*sql.Rows, error)
+	ExecContext(ctx context.Context, query string, args ...interface{}) (sql.Result, error)
+	QueryContext(ctx context.Context, query string, args ...interface{}) (*sql.Rows, error)
 }
 
 // Builder is the interface for all query builders
@@ -30,7 +31,7 @@ type Builder interface {
 }
 
 // Open initializes the database
-func Open(conn string, logger Logger) (*DB, error) {
+func Open(ctx context.Context, conn string, logger Logger) (*DB, error) {
 	var err error
 
 	db, err := sql.Open("sqlite3", conn)
@@ -38,29 +39,29 @@ func Open(conn string, logger Logger) (*DB, error) {
 		return &DB{}, err
 	}
 
-	if err = db.Ping(); err != nil {
+	if err = db.PingContext(ctx); err != nil {
 		return &DB{}, err
 	}
 
 	return &DB{db, logger}, nil
 }
 
-// Exec executes the given SQL query against the database
-func (db *DB) Exec(query string, args ...interface{}) (sql.Result, error) {
+// ExecContext executes the given SQL query against the database
+func (db *DB) ExecContext(ctx context.Context, query string, args ...interface{}) (sql.Result, error) {
 	if db.logger != nil {
 		db.logger("%s -- %v", query, args)
 	}
 
-	return db.DB.Exec(query, args...)
+	return db.DB.ExecContext(ctx, query, args...)
 }
 
-// Query executes the given SQL query against the database
-func (db *DB) Query(query string, args ...interface{}) (*sql.Rows, error) {
+// QueryContext executes the given SQL query against the database
+func (db *DB) QueryContext(ctx context.Context, query string, args ...interface{}) (*sql.Rows, error) {
 	if db.logger != nil {
 		db.logger("%s -- %v", query, args)
 	}
 
-	return db.DB.Query(query, args...)
+	return db.DB.QueryContext(ctx, query, args...)
 }
 
 // Delete creates and returns a new instance of DeleteQuery for the specified table
@@ -95,28 +96,28 @@ func (db *DB) Update(table string) *UpdateQuery {
 	}
 }
 
-// Savepoint starts a savepoint.
-func (db *DB) Savepoint(name string) error {
-	_, err := db.Exec(fmt.Sprintf("SAVEPOINT %s", name))
+// Savepoint starts a savepoint. TODO remove this???
+func (db *DB) Savepoint(ctx context.Context, name string) error {
+	_, err := db.ExecContext(ctx, fmt.Sprintf("SAVEPOINT %s", name))
 
 	return err
 }
 
-// ReleaseSavepoint commits a savepoint.
-func (db *DB) ReleaseSavepoint(name string) error {
-	_, err := db.Exec(fmt.Sprintf("RELEASE SAVEPOINT %s", name))
+// ReleaseSavepoint commits a savepoint. TODO remove this???
+func (db *DB) ReleaseSavepoint(ctx context.Context, name string) error {
+	_, err := db.ExecContext(ctx, fmt.Sprintf("RELEASE SAVEPOINT %s", name))
 
 	return err
 }
 
-// RollbackSavepoint rolls back a savepoint.
-func (db *DB) RollbackSavepoint(name string) error {
-	_, err := db.Exec(fmt.Sprintf("ROLLBACK TO SAVEPOINT %s", name))
+// RollbackSavepoint rolls back a savepoint. TODO remove this???
+func (db *DB) RollbackSavepoint(ctx context.Context, name string) error {
+	_, err := db.ExecContext(ctx, fmt.Sprintf("ROLLBACK TO SAVEPOINT %s", name))
 
 	return err
 }
 
-// Begin starts a transaction. The default isolation level is dependent on the driver
+// Begin starts a transaction. The default isolation level is dependent on the driver TODO make context aware?
 func (db *DB) Begin() (*Tx, error) {
 	tx, err := db.DB.Begin()
 

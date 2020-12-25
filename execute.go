@@ -2,6 +2,7 @@ package qb
 
 import (
 	"bytes"
+	"context"
 	"database/sql"
 	"reflect"
 )
@@ -16,7 +17,7 @@ func query(runner runner, builder Builder, dest interface{}) (int, error) {
 
 	query, params := buf.String(), builder.Params()
 
-	rows, err := runner.Query(query, params...)
+	rows, err := runner.QueryContext(context.TODO(), query, params...)
 	if err != nil {
 		return 0, err
 	}
@@ -39,7 +40,7 @@ func exec(runner runner, builder Builder) (sql.Result, error) {
 
 	query, params := buf.String(), builder.Params()
 
-	result, err := runner.Exec(query, params...)
+	result, err := runner.ExecContext(context.TODO(), query, params...)
 	if err != nil {
 		return nil, err
 	}

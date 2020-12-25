@@ -1,6 +1,7 @@
 package qb
 
 import (
+	"context"
 	"database/sql"
 	"fmt"
 )
@@ -52,23 +53,23 @@ func (tx *Tx) Update(table string) *UpdateQuery {
 	}
 }
 
-// Savepoint starts a savepoint.
-func (tx *Tx) Savepoint(name string) error {
-	_, err := tx.Exec(fmt.Sprintf("SAVEPOINT %s", name))
+// Savepoint starts a savepoint. TODO remove this???
+func (tx *Tx) Savepoint(ctx context.Context, name string) error {
+	_, err := tx.ExecContext(ctx, fmt.Sprintf("SAVEPOINT %s", name))
 
 	return err
 }
 
-// ReleaseSavepoint commits a savepoint.
-func (tx *Tx) ReleaseSavepoint(name string) error {
-	_, err := tx.Exec(fmt.Sprintf("RELEASE SAVEPOINT %s", name))
+// ReleaseSavepoint commits a savepoint. TODO remove this???
+func (tx *Tx) ReleaseSavepoint(ctx context.Context, name string) error {
+	_, err := tx.ExecContext(ctx, fmt.Sprintf("RELEASE SAVEPOINT %s", name))
 
 	return err
 }
 
-// RollbackSavepoint rolls back a savepoint.
-func (tx *Tx) RollbackSavepoint(name string) error {
-	_, err := tx.Exec(fmt.Sprintf("ROLLBACK TO SAVEPOINT %s", name))
+// RollbackSavepoint rolls back a savepoint. TODO remove this???
+func (tx *Tx) RollbackSavepoint(ctx context.Context, name string) error {
+	_, err := tx.ExecContext(ctx, fmt.Sprintf("ROLLBACK TO SAVEPOINT %s", name))
 
 	return err
 }
