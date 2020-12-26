@@ -9,13 +9,9 @@ import (
 	_ "github.com/mattn/go-sqlite3"
 )
 
-// Logger logs
-type Logger func(format string, v ...interface{})
-
 // DB represents the database
 type DB struct {
 	*sql.DB
-	logger Logger
 }
 
 type runner interface {
@@ -30,7 +26,7 @@ type Builder interface {
 }
 
 // Open initializes the database
-func Open(ctx context.Context, conn string, logger Logger) (*DB, error) {
+func Open(ctx context.Context, conn string) (*DB, error) {
 	var err error
 
 	db, err := sql.Open("sqlite3", conn)
@@ -42,25 +38,7 @@ func Open(ctx context.Context, conn string, logger Logger) (*DB, error) {
 		return &DB{}, err
 	}
 
-	return &DB{db, logger}, nil
-}
-
-// ExecContext executes the given SQL query against the database
-func (db *DB) ExecContext(ctx context.Context, query string, args ...interface{}) (sql.Result, error) {
-	if db.logger != nil {
-		db.logger("%s -- %v", query, args)
-	}
-
-	return db.DB.ExecContext(ctx, query, args...)
-}
-
-// QueryContext executes the given SQL query against the database
-func (db *DB) QueryContext(ctx context.Context, query string, args ...interface{}) (*sql.Rows, error) {
-	if db.logger != nil {
-		db.logger("%s -- %v", query, args)
-	}
-
-	return db.DB.QueryContext(ctx, query, args...)
+	return &DB{db}, nil
 }
 
 // Delete creates and returns a new instance of DeleteQuery for the specified table

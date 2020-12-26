@@ -9,16 +9,6 @@ type Tx struct {
 	*sql.Tx
 }
 
-// Commit commits the transaction
-func (tx *Tx) Commit() error {
-	return tx.Tx.Commit()
-}
-
-// Rollback aborts the transaction
-func (tx *Tx) Rollback() error {
-	return tx.Tx.Rollback()
-}
-
 // Delete creates and returns a new instance of DeleteQuery for the specified table
 func (tx *Tx) Delete(table string) *DeleteQuery {
 	return &DeleteQuery{

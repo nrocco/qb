@@ -73,10 +73,10 @@ func TestInsertQuery(t *testing.T) {
 			name: "insert record",
 			query: func() *InsertQuery {
 				record := struct {
-					ID      int64
-					Name    string
-					Content string
-					FuuBar  string
+					ID          int64
+					Name        string
+					Content     string
+					FuuBar      string
 					NonExistent int
 				}{
 					ID:      12345,

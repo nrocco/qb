@@ -17,6 +17,9 @@ func query(ctx context.Context, runner runner, builder Builder, dest interface{}
 
 	query, params := buf.String(), builder.Params()
 
+	logger := GetLogCtx(ctx)
+	logger("%s -- %v", query, params)
+
 	rows, err := runner.QueryContext(ctx, query, params...)
 	if err != nil {
 		return 0, err
@@ -39,6 +42,9 @@ func exec(ctx context.Context, runner runner, builder Builder) (sql.Result, erro
 	}
 
 	query, params := buf.String(), builder.Params()
+
+	logger := GetLogCtx(ctx)
+	logger("%s -- %v", query, params)
 
 	result, err := runner.ExecContext(ctx, query, params...)
 	if err != nil {

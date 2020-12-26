@@ -12,13 +12,13 @@ const notesSchema = `CREATE TABLE notes (
 );`
 
 type note struct {
-	ID int64
-	Name string
+	ID      int64
+	Name    string
 	Content string
 }
 
 func createTestDB(t *testing.T, schema string, fixtures string) *DB {
-	db, err := Open(context.TODO(), ":memory:", nil)
+	db, err := Open(context.TODO(), ":memory:")
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -39,13 +39,9 @@ func createTestDB(t *testing.T, schema string, fixtures string) *DB {
 }
 
 func TestOpenDatabase(t *testing.T) {
-	db, err := Open(context.TODO(), ":memory:", nil)
+	_, err := Open(context.TODO(), ":memory:")
 	if err != nil {
 		t.Fatal(err)
-	}
-
-	if db.logger != nil {
-		t.Fatal("Expected logger to be nil")
 	}
 }
 
@@ -81,7 +77,7 @@ func TestInsertIntoDatabase(t *testing.T) {
 	defer db.Close()
 
 	note := note{
-		Name: "Test Name",
+		Name:    "Test Name",
 		Content: "Test Content",
 	}
 
@@ -89,7 +85,7 @@ func TestInsertIntoDatabase(t *testing.T) {
 	query.Columns("name", "content")
 	query.Record(&note)
 
-	if _, err := query.Exec(context.TODO(), ); err != nil {
+	if _, err := query.Exec(context.TODO()); err != nil {
 		t.Fatal(err)
 	}
 
@@ -113,7 +109,7 @@ func TestUpdateIntoDatabase(t *testing.T) {
 	}
 
 	updateQuery := db.Update("notes").Set("name", "Bar").Where("id = ?", note.ID)
-	if _, err := updateQuery.Exec(context.TODO(), ); err != nil {
+	if _, err := updateQuery.Exec(context.TODO()); err != nil {
 		t.Fatal(err)
 	}
 
