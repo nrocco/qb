@@ -5,7 +5,6 @@ build: lint test
 
 .PHONY: lint
 lint:
-	git ls-files | xargs misspell -error
 	golint -set_exit_status ./...
 	go vet -v ./...
 

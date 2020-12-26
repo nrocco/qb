@@ -4,7 +4,6 @@ import (
 	"bytes"
 	"context"
 	"database/sql"
-	"fmt"
 
 	// We assume sqlite
 	_ "github.com/mattn/go-sqlite3"
@@ -96,30 +95,9 @@ func (db *DB) Update(table string) *UpdateQuery {
 	}
 }
 
-// Savepoint starts a savepoint. TODO remove this???
-func (db *DB) Savepoint(ctx context.Context, name string) error {
-	_, err := db.ExecContext(ctx, fmt.Sprintf("SAVEPOINT %s", name))
-
-	return err
-}
-
-// ReleaseSavepoint commits a savepoint. TODO remove this???
-func (db *DB) ReleaseSavepoint(ctx context.Context, name string) error {
-	_, err := db.ExecContext(ctx, fmt.Sprintf("RELEASE SAVEPOINT %s", name))
-
-	return err
-}
-
-// RollbackSavepoint rolls back a savepoint. TODO remove this???
-func (db *DB) RollbackSavepoint(ctx context.Context, name string) error {
-	_, err := db.ExecContext(ctx, fmt.Sprintf("ROLLBACK TO SAVEPOINT %s", name))
-
-	return err
-}
-
-// Begin starts a transaction. The default isolation level is dependent on the driver TODO make context aware?
-func (db *DB) Begin() (*Tx, error) {
-	tx, err := db.DB.Begin()
+// BeginTx starts a transaction. The default isolation level is dependent on the driver
+func (db *DB) BeginTx(ctx context.Context, opts *sql.TxOptions) (*Tx, error) {
+	tx, err := db.DB.BeginTx(ctx, opts)
 
 	return &Tx{tx}, err
 }

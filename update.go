@@ -2,6 +2,7 @@ package qb
 
 import (
 	"bytes"
+	"context"
 	"database/sql"
 	"fmt"
 	"strings"
@@ -39,8 +40,8 @@ func (q *UpdateQuery) Returning(returning ...string) *UpdateQuery {
 }
 
 // Exec executes the query
-func (q *UpdateQuery) Exec() (sql.Result, error) {
-	return exec(q.runner, q)
+func (q *UpdateQuery) Exec(ctx context.Context) (sql.Result, error) {
+	return exec(ctx, q.runner, q)
 }
 
 // Params returns all parameters for the query

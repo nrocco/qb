@@ -2,6 +2,7 @@ package qb
 
 import (
 	"bytes"
+	"context"
 	"database/sql"
 	"reflect"
 	"strings"
@@ -52,8 +53,8 @@ func (q *InsertQuery) Returning(returning ...string) *InsertQuery {
 }
 
 // Exec executes the query
-func (q *InsertQuery) Exec() (sql.Result, error) {
-	result, err := exec(q.runner, q)
+func (q *InsertQuery) Exec(ctx context.Context) (sql.Result, error) {
+	result, err := exec(ctx, q.runner, q)
 	if err != nil {
 		return nil, err
 	}

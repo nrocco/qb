@@ -7,7 +7,7 @@ import (
 	"reflect"
 )
 
-func query(runner runner, builder Builder, dest interface{}) (int, error) {
+func query(ctx context.Context, runner runner, builder Builder, dest interface{}) (int, error) {
 	buf := bytes.Buffer{}
 
 	err := builder.Build(&buf)
@@ -17,7 +17,7 @@ func query(runner runner, builder Builder, dest interface{}) (int, error) {
 
 	query, params := buf.String(), builder.Params()
 
-	rows, err := runner.QueryContext(context.TODO(), query, params...)
+	rows, err := runner.QueryContext(ctx, query, params...)
 	if err != nil {
 		return 0, err
 	}
@@ -30,7 +30,7 @@ func query(runner runner, builder Builder, dest interface{}) (int, error) {
 	return count, nil
 }
 
-func exec(runner runner, builder Builder) (sql.Result, error) {
+func exec(ctx context.Context, runner runner, builder Builder) (sql.Result, error) {
 	buf := bytes.Buffer{}
 
 	err := builder.Build(&buf)
@@ -40,7 +40,7 @@ func exec(runner runner, builder Builder) (sql.Result, error) {
 
 	query, params := buf.String(), builder.Params()
 
-	result, err := runner.ExecContext(context.TODO(), query, params...)
+	result, err := runner.ExecContext(ctx, query, params...)
 	if err != nil {
 		return nil, err
 	}

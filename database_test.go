@@ -60,7 +60,7 @@ func TestSelectFromDatabase(t *testing.T) {
 	query.Columns("COUNT(id)")
 
 	totalCount := 0
-	if err := query.LoadValue(&totalCount); err != nil {
+	if err := query.LoadValue(context.TODO(), &totalCount); err != nil {
 		t.Fatal(err)
 	} else if totalCount != 2 {
 		t.Fatalf("Expected 2 record but got %d", totalCount)
@@ -69,7 +69,7 @@ func TestSelectFromDatabase(t *testing.T) {
 	query.Columns("*")
 
 	notes := []*note{}
-	if _, err := query.Load(&notes); err != nil {
+	if _, err := query.Load(context.TODO(), &notes); err != nil {
 		t.Fatal(err)
 	} else if len(notes) != 2 {
 		t.Fatalf("Expected 2 rows but got %d", len(notes))
@@ -89,7 +89,7 @@ func TestInsertIntoDatabase(t *testing.T) {
 	query.Columns("name", "content")
 	query.Record(&note)
 
-	if _, err := query.Exec(); err != nil {
+	if _, err := query.Exec(context.TODO(), ); err != nil {
 		t.Fatal(err)
 	}
 
@@ -104,7 +104,7 @@ func TestUpdateIntoDatabase(t *testing.T) {
 
 	note := note{}
 	preUpdateQuery := db.Select("notes").Where("id = ?", 1)
-	if _, err := preUpdateQuery.Load(&note); err != nil {
+	if _, err := preUpdateQuery.Load(context.TODO(), &note); err != nil {
 		t.Fatal(err)
 	} else if note.Name != "Fuu" {
 		t.Fatalf("Expected Fuu but got %s", note.Name)
@@ -113,12 +113,12 @@ func TestUpdateIntoDatabase(t *testing.T) {
 	}
 
 	updateQuery := db.Update("notes").Set("name", "Bar").Where("id = ?", note.ID)
-	if _, err := updateQuery.Exec(); err != nil {
+	if _, err := updateQuery.Exec(context.TODO(), ); err != nil {
 		t.Fatal(err)
 	}
 
 	postUpdateQuery := db.Select("notes")
-	if _, err := postUpdateQuery.Load(&note); err != nil {
+	if _, err := postUpdateQuery.Load(context.TODO(), &note); err != nil {
 		t.Fatal(err)
 	} else if note.Name != "Bar" {
 		t.Fatalf("Expected Bar but got %s", note.Name)
@@ -133,19 +133,19 @@ func TestDeleteIntoDatabase(t *testing.T) {
 
 	totalCount := 0
 	preDeleteQuery := db.Select("notes").Columns("COUNT(id)")
-	if err := preDeleteQuery.LoadValue(&totalCount); err != nil {
+	if err := preDeleteQuery.LoadValue(context.TODO(), &totalCount); err != nil {
 		t.Fatal(err)
 	} else if totalCount != 1 {
 		t.Fatalf("Expected 1 record but got %d", totalCount)
 	}
 
 	deleteQuery := db.Delete("notes").Where("id = ?", 1)
-	if _, err := deleteQuery.Exec(); err != nil {
+	if _, err := deleteQuery.Exec(context.TODO()); err != nil {
 		t.Fatal(err)
 	}
 
 	postDeleteQuery := db.Select("notes").Columns("COUNT(id)")
-	if err := postDeleteQuery.LoadValue(&totalCount); err != nil {
+	if err := postDeleteQuery.LoadValue(context.TODO(), &totalCount); err != nil {
 		t.Fatal(err)
 	} else if totalCount != 0 {
 		t.Fatalf("Expected 0 record but got %d", totalCount)

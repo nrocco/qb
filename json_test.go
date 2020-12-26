@@ -1,6 +1,7 @@
 package qb
 
 import (
+	"context"
 	"database/sql/driver"
 	"testing"
 )
@@ -31,7 +32,7 @@ func TestSelectJSONFromDatabase(t *testing.T) {
 
 	query.Columns("COUNT(name)")
 	totalCount := 0
-	if err := query.LoadValue(&totalCount); err != nil {
+	if err := query.LoadValue(context.TODO(), &totalCount); err != nil {
 		t.Fatal(err)
 	} else if totalCount != 2 {
 		t.Fatalf("Expected 2 record but got %d", totalCount)
@@ -39,7 +40,7 @@ func TestSelectJSONFromDatabase(t *testing.T) {
 
 	query.Columns("*")
 	names := []*name{}
-	if _, err := query.Load(&names); err != nil {
+	if _, err := query.Load(context.TODO(), &names); err != nil {
 		t.Fatal(err)
 	} else if len(names) != 2 {
 		t.Fatalf("Expected 2 rows but got %d", len(names))
@@ -78,7 +79,7 @@ func TestInsertJSONIntoDatabase(t *testing.T) {
 	query.Columns("name", "tags")
 	query.Record(&n)
 
-	if _, err := query.Exec(); err != nil {
+	if _, err := query.Exec(context.TODO()); err != nil {
 		t.Fatal(err)
 	}
 
@@ -88,7 +89,7 @@ func TestInsertJSONIntoDatabase(t *testing.T) {
 
 	fuu := name{}
 
-	if _, err := iQuery.Load(&fuu); err != nil {
+	if _, err := iQuery.Load(context.TODO(), &fuu); err != nil {
 		t.Fatal(err)
 	}
 

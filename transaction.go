@@ -1,9 +1,7 @@
 package qb
 
 import (
-	"context"
 	"database/sql"
-	"fmt"
 )
 
 // Tx represents a transaction in a database
@@ -51,25 +49,4 @@ func (tx *Tx) Update(table string) *UpdateQuery {
 		runner: tx,
 		table:  table,
 	}
-}
-
-// Savepoint starts a savepoint. TODO remove this???
-func (tx *Tx) Savepoint(ctx context.Context, name string) error {
-	_, err := tx.ExecContext(ctx, fmt.Sprintf("SAVEPOINT %s", name))
-
-	return err
-}
-
-// ReleaseSavepoint commits a savepoint. TODO remove this???
-func (tx *Tx) ReleaseSavepoint(ctx context.Context, name string) error {
-	_, err := tx.ExecContext(ctx, fmt.Sprintf("RELEASE SAVEPOINT %s", name))
-
-	return err
-}
-
-// RollbackSavepoint rolls back a savepoint. TODO remove this???
-func (tx *Tx) RollbackSavepoint(ctx context.Context, name string) error {
-	_, err := tx.ExecContext(ctx, fmt.Sprintf("ROLLBACK TO SAVEPOINT %s", name))
-
-	return err
 }

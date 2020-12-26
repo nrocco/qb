@@ -2,6 +2,7 @@ package qb
 
 import (
 	"bytes"
+	"context"
 	"errors"
 	"fmt"
 	"strings"
@@ -68,13 +69,13 @@ func (q *SelectQuery) Offset(offset int) *SelectQuery {
 }
 
 // Load will execute the query and scan the result into the given struct
-func (q *SelectQuery) Load(value interface{}) (int, error) {
-	return query(q.runner, q, value)
+func (q *SelectQuery) Load(ctx context.Context, value interface{}) (int, error) {
+	return query(ctx, q.runner, q, value)
 }
 
 // LoadValue will execute the query and scan the scalar result into the given variable
-func (q *SelectQuery) LoadValue(value interface{}) error {
-	rows, err := query(q.runner, q, value)
+func (q *SelectQuery) LoadValue(ctx context.Context, value interface{}) error {
+	rows, err := query(ctx, q.runner, q, value)
 	if err != nil {
 		return err
 	}

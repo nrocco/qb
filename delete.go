@@ -2,6 +2,7 @@ package qb
 
 import (
 	"bytes"
+	"context"
 	"database/sql"
 	"strings"
 )
@@ -22,8 +23,8 @@ func (q *DeleteQuery) Where(condition string, params ...interface{}) *DeleteQuer
 }
 
 // Exec executes the query
-func (q *DeleteQuery) Exec() (sql.Result, error) {
-	return exec(q.runner, q)
+func (q *DeleteQuery) Exec(ctx context.Context) (sql.Result, error) {
+	return exec(ctx, q.runner, q)
 }
 
 // Params returns the parameters for this query
