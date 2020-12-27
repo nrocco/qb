@@ -9,12 +9,6 @@ var (
 // Logger logs
 type Logger func(format string, v ...interface{})
 
-type contextKey string
-
-func (c contextKey) String() string {
-	return "qb context key " + string(c)
-}
-
 // GetLoggerCtx extracts a qb.Logger from the context
 func GetLoggerCtx(ctx context.Context) Logger {
 	if logger, ok := ctx.Value(loggerContextKey).(Logger); ok {

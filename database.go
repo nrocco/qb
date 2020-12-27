@@ -9,11 +9,6 @@ import (
 	_ "github.com/mattn/go-sqlite3"
 )
 
-// DB represents the database
-type DB struct {
-	*sql.DB
-}
-
 type runner interface {
 	ExecContext(ctx context.Context, query string, args ...interface{}) (sql.Result, error)
 	QueryContext(ctx context.Context, query string, args ...interface{}) (*sql.Rows, error)
@@ -23,6 +18,12 @@ type runner interface {
 type Builder interface {
 	Build(buf *bytes.Buffer) error
 	Params() []interface{}
+}
+
+type contextKey string
+
+func (c contextKey) String() string {
+	return "qb context key " + string(c)
 }
 
 // Open initializes the database
@@ -39,6 +40,11 @@ func Open(ctx context.Context, conn string) (*DB, error) {
 	}
 
 	return &DB{db}, nil
+}
+
+// DB represents the database
+type DB struct {
+	*sql.DB
 }
 
 // Delete creates and returns a new instance of DeleteQuery for the specified table
