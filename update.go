@@ -11,12 +11,19 @@ import (
 // UpdateQuery represents a UPDATE sql query
 type UpdateQuery struct {
 	runner
+	ctx       context.Context
 	table     string
 	wheres    []string
 	params    []interface{}
 	columns   []string
 	values    []interface{}
 	returning []string
+}
+
+// Table is used to set the table to update from
+func (q *UpdateQuery) Table(table string) *UpdateQuery {
+	q.table = table
+	return q
 }
 
 // Set adds a column = value statement to the UPDATE querie's SET clause
@@ -40,8 +47,8 @@ func (q *UpdateQuery) Returning(returning ...string) *UpdateQuery {
 }
 
 // Exec executes the query
-func (q *UpdateQuery) Exec(ctx context.Context) (sql.Result, error) {
-	return exec(ctx, q.runner, q)
+func (q *UpdateQuery) Exec() (sql.Result, error) {
+	return exec(q.ctx, q.runner, q)
 }
 
 // Params returns all parameters for the query

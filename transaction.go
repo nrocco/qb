@@ -26,33 +26,33 @@ type Tx struct {
 }
 
 // Delete creates and returns a new instance of DeleteQuery for the specified table
-func (tx *Tx) Delete(table string) *DeleteQuery {
+func (tx *Tx) Delete(ctx context.Context) *DeleteQuery {
 	return &DeleteQuery{
+		ctx:    ctx,
 		runner: tx,
-		table:  table,
 	}
 }
 
 // Insert creates and returns a new instance of InsertQuery for the specified table
-func (tx *Tx) Insert(table string) *InsertQuery {
+func (tx *Tx) Insert(ctx context.Context) *InsertQuery {
 	return &InsertQuery{
+		ctx:    ctx,
 		runner: tx,
-		table:  table,
 	}
 }
 
 // Select creates and returns a new instance of SelectQuery for the specified table
-func (tx *Tx) Select(table string) *SelectQuery {
+func (tx *Tx) Select(ctx context.Context) *SelectQuery {
 	return &SelectQuery{
+		ctx:    ctx,
 		runner: tx,
-		table:  table,
 	}
 }
 
 // Update creates and returns a new instance of UpdateQuery for the specified table
-func (tx *Tx) Update(table string) *UpdateQuery {
+func (tx *Tx) Update(ctx context.Context) *UpdateQuery {
 	return &UpdateQuery{
+		ctx:    ctx,
 		runner: tx,
-		table:  table,
 	}
 }

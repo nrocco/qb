@@ -11,6 +11,7 @@ import (
 // InsertQuery represents a INSERT sql query
 type InsertQuery struct {
 	runner
+	ctx            context.Context
 	orIgnore       bool
 	table          string
 	columns        []string
@@ -24,6 +25,12 @@ type InsertQuery struct {
 // OrIgnore make the query behave using INSERT OR IGNORE INTO
 func (q *InsertQuery) OrIgnore() *InsertQuery {
 	q.orIgnore = true
+	return q
+}
+
+// InTo is used to set the table to insert into
+func (q *InsertQuery) InTo(table string) *InsertQuery {
+	q.table = table
 	return q
 }
 
@@ -53,8 +60,8 @@ func (q *InsertQuery) Returning(returning ...string) *InsertQuery {
 }
 
 // Exec executes the query
-func (q *InsertQuery) Exec(ctx context.Context) (sql.Result, error) {
-	result, err := exec(ctx, q.runner, q)
+func (q *InsertQuery) Exec() (sql.Result, error) {
+	result, err := exec(q.ctx, q.runner, q)
 	if err != nil {
 		return nil, err
 	}

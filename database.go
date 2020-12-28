@@ -48,34 +48,46 @@ type DB struct {
 }
 
 // Delete creates and returns a new instance of DeleteQuery for the specified table
-func (db *DB) Delete(table string) *DeleteQuery {
+func (db *DB) Delete(ctx context.Context) *DeleteQuery {
+	if tx := GetTxCtx(ctx); tx != nil {
+		return tx.Delete(ctx)
+	}
 	return &DeleteQuery{
+		ctx:    ctx,
 		runner: db,
-		table:  table,
 	}
 }
 
 // Insert creates and returns a new instance of InsertQuery for the specified table
-func (db *DB) Insert(table string) *InsertQuery {
+func (db *DB) Insert(ctx context.Context) *InsertQuery {
+	if tx := GetTxCtx(ctx); tx != nil {
+		return tx.Insert(ctx)
+	}
 	return &InsertQuery{
+		ctx:    ctx,
 		runner: db,
-		table:  table,
 	}
 }
 
 // Select creates and returns a new instance of SelectQuery for the specified table
-func (db *DB) Select(table string) *SelectQuery {
+func (db *DB) Select(ctx context.Context) *SelectQuery {
+	if tx := GetTxCtx(ctx); tx != nil {
+		return tx.Select(ctx)
+	}
 	return &SelectQuery{
+		ctx:    ctx,
 		runner: db,
-		table:  table,
 	}
 }
 
 // Update creates and returns a new instance of UpdateQuery for the specified table
-func (db *DB) Update(table string) *UpdateQuery {
+func (db *DB) Update(ctx context.Context) *UpdateQuery {
+	if tx := GetTxCtx(ctx); tx != nil {
+		return tx.Update(ctx)
+	}
 	return &UpdateQuery{
+		ctx:    ctx,
 		runner: db,
-		table:  table,
 	}
 }
 

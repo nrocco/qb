@@ -10,9 +10,16 @@ import (
 // DeleteQuery represents a DELETE sql query
 type DeleteQuery struct {
 	runner
+	ctx    context.Context
 	table  string
 	wheres []string
 	params []interface{}
+}
+
+// From is used to set the table to delete from
+func (q *DeleteQuery) From(table string) *DeleteQuery {
+	q.table = table
+	return q
 }
 
 // Where adds a where clause to the select query using *AND* strategy
@@ -23,8 +30,8 @@ func (q *DeleteQuery) Where(condition string, params ...interface{}) *DeleteQuer
 }
 
 // Exec executes the query
-func (q *DeleteQuery) Exec(ctx context.Context) (sql.Result, error) {
-	return exec(ctx, q.runner, q)
+func (q *DeleteQuery) Exec() (sql.Result, error) {
+	return exec(q.ctx, q.runner, q)
 }
 
 // Params returns the parameters for this query
