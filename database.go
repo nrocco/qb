@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"context"
 	"database/sql"
+	"time"
 
 	// We assume sqlite
 	_ "github.com/mattn/go-sqlite3"
@@ -96,4 +97,24 @@ func (db *DB) BeginTx(ctx context.Context, opts *sql.TxOptions) (*Tx, error) {
 	tx, err := db.DB.BeginTx(ctx, opts)
 
 	return &Tx{tx}, err
+}
+
+// ExecContext executes a query without returning any rows. The args are for any placeholder parameters in the query
+func (db *DB) ExecContext(ctx context.Context, query string, args ...interface{}) (sql.Result, error) {
+	logger := GetLoggerCtx(ctx)
+	start := time.Now()
+	result, err := db.DB.ExecContext(ctx, query, args...)
+	end := time.Now()
+	logger(end.Sub(start), "%s -- %v", query, args)
+	return result, err
+}
+
+// QueryContext executes a query that returns rows, typically a SELECT. The args are for any placeholder parameters in the query.
+func (db *DB) QueryContext(ctx context.Context, query string, args ...interface{}) (*sql.Rows, error) {
+	logger := GetLoggerCtx(ctx)
+	start := time.Now()
+	rows, err := db.DB.QueryContext(ctx, query, args...)
+	end := time.Now()
+	logger(end.Sub(start), "%s -- %v", query, args)
+	return rows, err
 }
