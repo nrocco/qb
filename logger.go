@@ -1,13 +1,16 @@
 package qb
 
-import "context"
+import (
+	"context"
+	"time"
+)
 
 var (
 	loggerContextKey = contextKey("logger")
 )
 
 // Logger logs
-type Logger func(format string, v ...interface{})
+type Logger func(duration time.Duration, format string, v ...interface{})
 
 // GetLoggerCtx extracts a qb.Logger from the context
 func GetLoggerCtx(ctx context.Context) Logger {
@@ -15,7 +18,7 @@ func GetLoggerCtx(ctx context.Context) Logger {
 		return logger
 	}
 
-	return func(format string, v ...interface{}) {}
+	return func(duration time.Duration, format string, v ...interface{}) {}
 }
 
 // WitLogger adds a qb.Logger to the context

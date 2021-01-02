@@ -5,6 +5,7 @@ import (
 	"context"
 	"database/sql"
 	"reflect"
+	"time"
 )
 
 func query(ctx context.Context, runner runner, builder Builder, dest interface{}) (int, error) {
@@ -18,9 +19,11 @@ func query(ctx context.Context, runner runner, builder Builder, dest interface{}
 	query, params := buf.String(), builder.Params()
 
 	logger := GetLoggerCtx(ctx)
-	logger("%s -- %v", query, params)
-
+	start := time.Now()
 	rows, err := runner.QueryContext(ctx, query, params...)
+	end := time.Now()
+	logger(end.Sub(start), "%s -- %v", query, params)
+
 	if err != nil {
 		return 0, err
 	}
@@ -44,9 +47,11 @@ func exec(ctx context.Context, runner runner, builder Builder) (sql.Result, erro
 	query, params := buf.String(), builder.Params()
 
 	logger := GetLoggerCtx(ctx)
-	logger("%s -- %v", query, params)
-
+	start := time.Now()
 	result, err := runner.ExecContext(ctx, query, params...)
+	end := time.Now()
+	logger(end.Sub(start), "%s -- %v", query, params)
+
 	if err != nil {
 		return nil, err
 	}
