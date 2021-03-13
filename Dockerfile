@@ -1,5 +1,5 @@
 # syntax = docker/dockerfile:1-experimental
-FROM --platform=${BUILDPLATFORM} golang:alpine AS base
+FROM --platform=${BUILDPLATFORM} golang:alpine AS gobase
 RUN apk add --no-cache \
         ca-certificates \
         gcc \
@@ -8,11 +8,13 @@ RUN apk add --no-cache \
 RUN env GO111MODULE=on go get -u \
         golang.org/x/lint/golint \
         golang.org/x/tools/cmd/goimports \
-        && true
-WORKDIR /app
+    && true
+WORKDIR /src
 
-FROM base AS builder
-ENV CGO_ENABLED=1
+
+
+FROM --platform=${BUILDPLATFORM} gobase AS gobuilder
+ENV CGO_ENABLED=0
 COPY go.mod go.sum .
 RUN go mod download
 ARG BUILD_VERSION=master
@@ -23,9 +25,6 @@ ARG TARGETARCH
 COPY . .
 RUN --mount=type=cache,target=/root/.cache/go-build golint -set_exit_status ./...
 RUN --mount=type=cache,target=/root/.cache/go-build go vet -v ./...
-#RUN mkdir -p dist
+RUN mkdir -p dist
 #RUN --mount=type=cache,target=/root/.cache/go-build GOOS=${TARGETOS} GOARCH=${TARGETARCH} go build -v -x -o dist -ldflags "-X github.com/nrocco/ide/cmd.version=${BUILD_VERSION} -X github.com/nrocco/ide/cmd.commit=${BUILD_COMMIT} -X github.com/nrocco/ide/cmd.date=${BUILD_DATE}"
 RUN --mount=type=cache,target=/root/.cache/go-build go test -v -short ./...
-
-# FROM scratch
-# COPY --from=builder /app/dist/ /

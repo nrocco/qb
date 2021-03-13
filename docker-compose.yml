@@ -1,0 +1,14 @@
+---
+version: "3.8"
+services:
+  go:
+    build:
+      context: .
+      target: gobase
+    init: true
+    command: ["sleep", "infinite"]
+    volumes:
+      - ".:/src"
+      - "go_cache:/go/pkg"
+volumes:
+  go_cache:

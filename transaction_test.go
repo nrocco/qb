@@ -60,7 +60,7 @@ func TestTransactionsRollback(t *testing.T) {
 	// Generate a conflict
 	if _, err := tx.Update(ctx).Table("animals").Set("name", "fuu").Where("name = ?", "bar").Exec(); err == nil {
 		t.Fatalf("Expected unique constraint to kick in when UPDATE but it did not")
-	} else if err.Error() != "UNIQUE constraint failed: animals.name" {
+	} else if err.Error() != "constraint failed: UNIQUE constraint failed: animals.name (2067)" {
 		t.Fatalf("got: %s -- expected: UNIQUE constraint failed: animals.name", err.Error())
 	}
 

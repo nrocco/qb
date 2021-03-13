@@ -7,7 +7,7 @@ import (
 	"time"
 
 	// We assume sqlite
-	_ "github.com/mattn/go-sqlite3"
+	_ "modernc.org/sqlite"
 )
 
 type runner interface {
@@ -31,7 +31,7 @@ func (c contextKey) String() string {
 func Open(ctx context.Context, conn string) (*DB, error) {
 	var err error
 
-	db, err := sql.Open("sqlite3", conn)
+	db, err := sql.Open("sqlite", conn)
 	if err != nil {
 		return &DB{}, err
 	}
