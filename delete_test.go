@@ -16,7 +16,7 @@ func TestDeleteQuery(t *testing.T) {
 	}
 
 	var testResults = []test{
-		test{
+		{
 			name: "delete everything",
 			query: func() *DeleteQuery {
 				query := &DeleteQuery{table: "fuu"}
@@ -24,7 +24,7 @@ func TestDeleteQuery(t *testing.T) {
 			},
 			result: "DELETE FROM fuu",
 		},
-		test{
+		{
 			name: "delete with where clause",
 			query: func() *DeleteQuery {
 				query := &DeleteQuery{table: "fuu"}
@@ -34,7 +34,7 @@ func TestDeleteQuery(t *testing.T) {
 			result: "DELETE FROM fuu WHERE column1 = ?",
 			values: []interface{}{1234},
 		},
-		test{
+		{
 			name: "delete with multiple where clauses",
 			query: func() *DeleteQuery {
 				query := &DeleteQuery{table: "fuu"}

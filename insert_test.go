@@ -16,7 +16,7 @@ func TestInsertQuery(t *testing.T) {
 	}
 
 	var testResults = []test{
-		test{
+		{
 			name: "insert nothing", // TODO consider throwing an error here
 			query: func() *InsertQuery {
 				query := &InsertQuery{table: "fuu"}
@@ -24,7 +24,7 @@ func TestInsertQuery(t *testing.T) {
 			},
 			result: "INSERT INTO fuu VALUES ()",
 		},
-		test{
+		{
 			name: "insert and returning",
 			query: func() *InsertQuery {
 				query := &InsertQuery{table: "fuu"}
@@ -35,7 +35,7 @@ func TestInsertQuery(t *testing.T) {
 			result: "INSERT INTO fuu VALUES (?) RETURNING column1, column3",
 			values: []interface{}{123},
 		},
-		test{
+		{
 			name: "insert or ignore",
 			query: func() *InsertQuery {
 				query := &InsertQuery{table: "fuu"}
@@ -46,7 +46,7 @@ func TestInsertQuery(t *testing.T) {
 			result: "INSERT OR IGNORE INTO fuu VALUES (?, ?)",
 			values: []interface{}{123, "fuubar"},
 		},
-		test{
+		{
 			name: "insert one column",
 			query: func() *InsertQuery {
 				query := &InsertQuery{table: "fuu"}
@@ -57,7 +57,7 @@ func TestInsertQuery(t *testing.T) {
 			result: "INSERT INTO fuu (column1) VALUES (?)",
 			values: []interface{}{"value1"},
 		},
-		test{
+		{
 			name: "insert with on conflict",
 			query: func() *InsertQuery {
 				query := &InsertQuery{table: "fuu"}
@@ -69,7 +69,7 @@ func TestInsertQuery(t *testing.T) {
 			result: "INSERT INTO fuu (column1) VALUES (?) ON CONFLICT (column1) DO UPDATE SET column1=excluded.column1, column2=excluded.column2",
 			values: []interface{}{"value1"},
 		},
-		test{
+		{
 			name: "insert record",
 			query: func() *InsertQuery {
 				record := struct {

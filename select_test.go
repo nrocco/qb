@@ -16,7 +16,7 @@ func TestSelectQuery(t *testing.T) {
 	}
 
 	var testResults = []test{
-		test{
+		{
 			name: "select everything",
 			query: func() *SelectQuery {
 				query := &SelectQuery{table: "fuu"}
@@ -24,7 +24,7 @@ func TestSelectQuery(t *testing.T) {
 			},
 			result: "SELECT * FROM fuu",
 		},
-		test{
+		{
 			name: "select specific columns",
 			query: func() *SelectQuery {
 				query := &SelectQuery{table: "fuu"}
@@ -33,7 +33,7 @@ func TestSelectQuery(t *testing.T) {
 			},
 			result: "SELECT bar, baz FROM fuu",
 		},
-		test{
+		{
 			name: "select with join",
 			query: func() *SelectQuery {
 				query := &SelectQuery{table: "fuu"}
@@ -42,7 +42,7 @@ func TestSelectQuery(t *testing.T) {
 			},
 			result: "SELECT * FROM fuu LEFT JOIN bar ON bar.id = fuu.bar_id",
 		},
-		test{
+		{
 			name: "select single where condition",
 			query: func() *SelectQuery {
 				query := &SelectQuery{table: "fuu"}
@@ -52,7 +52,7 @@ func TestSelectQuery(t *testing.T) {
 			result: "SELECT * FROM fuu WHERE column1 = ?",
 			values: []interface{}{123},
 		},
-		test{
+		{
 			name: "select multiple where condition",
 			query: func() *SelectQuery {
 				query := &SelectQuery{table: "fuu"}
@@ -63,7 +63,7 @@ func TestSelectQuery(t *testing.T) {
 			result: "SELECT * FROM fuu WHERE column1 = ? AND column2 IS NULL",
 			values: []interface{}{"fuu"},
 		},
-		test{
+		{
 			name: "select group by",
 			query: func() *SelectQuery {
 				query := &SelectQuery{table: "fuu"}
@@ -72,7 +72,7 @@ func TestSelectQuery(t *testing.T) {
 			},
 			result: "SELECT * FROM fuu GROUP BY column1",
 		},
-		test{
+		{
 			name: "select multiple group by",
 			query: func() *SelectQuery {
 				query := &SelectQuery{table: "fuu"}
@@ -82,7 +82,7 @@ func TestSelectQuery(t *testing.T) {
 			},
 			result: "SELECT * FROM fuu GROUP BY column1, column2",
 		},
-		test{
+		{
 			name: "select with ordering ascending",
 			query: func() *SelectQuery {
 				query := &SelectQuery{table: "fuu"}
@@ -91,7 +91,7 @@ func TestSelectQuery(t *testing.T) {
 			},
 			result: "SELECT * FROM fuu ORDER BY column1 ASC",
 		},
-		test{
+		{
 			name: "select with ordering descending",
 			query: func() *SelectQuery {
 				query := &SelectQuery{table: "fuu"}
@@ -100,7 +100,7 @@ func TestSelectQuery(t *testing.T) {
 			},
 			result: "SELECT * FROM fuu ORDER BY column1 DESC",
 		},
-		test{
+		{
 			name: "select with multiple order bys",
 			query: func() *SelectQuery {
 				query := &SelectQuery{table: "fuu"}
@@ -110,7 +110,7 @@ func TestSelectQuery(t *testing.T) {
 			},
 			result: "SELECT * FROM fuu ORDER BY column1 DESC, column2 ASC",
 		},
-		test{
+		{
 			name: "select with limit and offset",
 			query: func() *SelectQuery {
 				query := &SelectQuery{table: "fuu"}
@@ -120,7 +120,7 @@ func TestSelectQuery(t *testing.T) {
 			},
 			result: "SELECT * FROM fuu LIMIT 10 OFFSET 10",
 		},
-		test{
+		{
 			name: "select with many things combined",
 			query: func() *SelectQuery {
 				query := &SelectQuery{table: "fuu f"}

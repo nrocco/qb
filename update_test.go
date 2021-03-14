@@ -16,7 +16,7 @@ func TestUpdateQuery(t *testing.T) {
 	}
 
 	var testResults = []test{
-		test{
+		{
 			name: "update nothing", // TODO consider throwing an error here
 			query: func() *UpdateQuery {
 				query := &UpdateQuery{table: "fuu"}
@@ -24,7 +24,7 @@ func TestUpdateQuery(t *testing.T) {
 			},
 			result: "UPDATE fuu SET ",
 		},
-		test{
+		{
 			name: "update and returning",
 			query: func() *UpdateQuery {
 				query := &UpdateQuery{table: "fuu"}
@@ -36,7 +36,7 @@ func TestUpdateQuery(t *testing.T) {
 			result: "UPDATE fuu SET closed = ? WHERE id = ? RETURNING column1, column3",
 			values: []interface{}{true, 123},
 		},
-		test{
+		{
 			name: "update one column",
 			query: func() *UpdateQuery {
 				query := &UpdateQuery{table: "fuu"}
@@ -47,7 +47,7 @@ func TestUpdateQuery(t *testing.T) {
 			result: "UPDATE fuu SET closed = ? WHERE id = ?",
 			values: []interface{}{true, 123},
 		},
-		test{
+		{
 			name: "update multiple columns multiple where clauses",
 			query: func() *UpdateQuery {
 				query := &UpdateQuery{table: "fuu"}
@@ -60,7 +60,7 @@ func TestUpdateQuery(t *testing.T) {
 			result: "UPDATE fuu SET closed = ?, year = ? WHERE id = ? AND name = ?",
 			values: []interface{}{true, 2020, 123, "test"},
 		},
-		test{
+		{
 			name: "update without where clause",
 			query: func() *UpdateQuery {
 				query := &UpdateQuery{table: "fuu"}

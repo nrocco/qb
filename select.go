@@ -11,7 +11,7 @@ import (
 // SelectQuery represents a SELECT sql query
 type SelectQuery struct {
 	runner
-	ctx		 context.Context
+	ctx      context.Context
 	table    string
 	wheres   []string
 	params   []interface{}
