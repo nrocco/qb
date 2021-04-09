@@ -16,7 +16,7 @@ WORKDIR /src
 FROM --platform=${BUILDPLATFORM} gobase AS gobuilder
 ENV CGO_ENABLED=0
 COPY go.mod go.sum .
-RUN go mod download
+RUN --mount=type=cache,target=/root/.cache/go-build go mod download
 ARG BUILD_VERSION=master
 ARG BUILD_COMMIT=unknown
 ARG BUILD_DATE=now
