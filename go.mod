@@ -11,4 +11,4 @@ require (
 	modernc.org/strutil v1.1.1 // indirect
 )
 
-go 1.13
+go 1.16
