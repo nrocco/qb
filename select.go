@@ -36,8 +36,9 @@ func (q *SelectQuery) Columns(columns ...string) *SelectQuery {
 }
 
 // Join adds a join to the select query
-func (q *SelectQuery) Join(join string) *SelectQuery {
+func (q *SelectQuery) Join(join string, params ...interface{}) *SelectQuery {
 	q.joins = append(q.joins, join)
+	q.params = append(q.params, params...)
 	return q
 }
 
