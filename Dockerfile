@@ -5,10 +5,8 @@ RUN apk add --no-cache \
         gcc \
         musl-dev \
     && true
-RUN env GO111MODULE=on go get -u \
-        golang.org/x/lint/golint \
-        golang.org/x/tools/cmd/goimports \
-    && true
+RUN go install golang.org/x/lint/golint@latest
+RUN go install golang.org/x/tools/cmd/goimports@latest
 WORKDIR /src
 
 
@@ -25,6 +23,4 @@ ARG TARGETARCH
 COPY . .
 RUN --mount=type=cache,target=/root/.cache/go-build golint -set_exit_status ./...
 RUN --mount=type=cache,target=/root/.cache/go-build go vet -v ./...
-RUN mkdir -p dist
-#RUN --mount=type=cache,target=/root/.cache/go-build GOOS=${TARGETOS} GOARCH=${TARGETARCH} go build -v -x -o dist -ldflags "-X github.com/nrocco/ide/cmd.version=${BUILD_VERSION} -X github.com/nrocco/ide/cmd.commit=${BUILD_COMMIT} -X github.com/nrocco/ide/cmd.date=${BUILD_DATE}"
 RUN --mount=type=cache,target=/root/.cache/go-build go test -v -short ./...

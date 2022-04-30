@@ -126,14 +126,14 @@ func TestSelectQuery(t *testing.T) {
 				query := &SelectQuery{table: "fuu f"}
 				query.Columns("COUNT(f.id)")
 				query.Where("f.name = ?", "something")
-				query.OrderBy("f.name", "ASC")
+				query.OrderBy("f.name", "ASC NULLS FIRST")
 				query.Join("LEFT JOIN bar b ON b.fuu_id = f.id")
 				query.GroupBy("b.id")
 				query.Limit(5)
 				query.Offset(0)
 				return query
 			},
-			result: "SELECT COUNT(f.id) FROM fuu f LEFT JOIN bar b ON b.fuu_id = f.id WHERE f.name = ? GROUP BY b.id ORDER BY f.name ASC LIMIT 5 OFFSET 0",
+			result: "SELECT COUNT(f.id) FROM fuu f LEFT JOIN bar b ON b.fuu_id = f.id WHERE f.name = ? GROUP BY b.id ORDER BY f.name ASC NULLS FIRST LIMIT 5 OFFSET 0",
 			values: []interface{}{"something"},
 		},
 	}

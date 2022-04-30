@@ -51,9 +51,6 @@ func (q *SelectQuery) Where(condition string, params ...interface{}) *SelectQuer
 
 // OrderBy adds an ORDER BY clause to the SELECT query
 func (q *SelectQuery) OrderBy(column string, direction string) *SelectQuery {
-	if direction != "DESC" {
-		direction = "ASC"
-	}
 	q.orderBys = append(q.orderBys, column+" "+direction)
 	return q
 }
