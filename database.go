@@ -105,7 +105,7 @@ func (db *DB) ExecContext(ctx context.Context, query string, args ...interface{}
 	start := time.Now()
 	result, err := db.DB.ExecContext(ctx, query, args...)
 	end := time.Now()
-	logger(end.Sub(start), "%s -- %v", query, args)
+	logger(ctx, end.Sub(start), "%s -- %v", query, args)
 	return result, err
 }
 
@@ -115,6 +115,6 @@ func (db *DB) QueryContext(ctx context.Context, query string, args ...interface{
 	start := time.Now()
 	rows, err := db.DB.QueryContext(ctx, query, args...)
 	end := time.Now()
-	logger(end.Sub(start), "%s -- %v", query, args)
+	logger(ctx, end.Sub(start), "%s -- %v", query, args)
 	return rows, err
 }
