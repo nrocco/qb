@@ -86,7 +86,7 @@ func (q *SelectQuery) LoadValue(value interface{}) error {
 	}
 
 	if rows == 0 {
-		return errors.New("No records returned")
+		return errors.New("no records returned")
 	}
 
 	return nil

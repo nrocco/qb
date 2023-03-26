@@ -4,11 +4,13 @@ services:
   go:
     build:
       context: .
-      target: gobase
+      target: godev
     init: true
-    command: ["sleep", "infinite"]
+    command: ["sleep", "infinity"]
     volumes:
       - ".:/src"
-      - "go_cache:/go/pkg"
+      - "go_cache:/root/.cache"
+      - "go_pkg:/go/pkg"
 volumes:
   go_cache:
+  go_pkg:
