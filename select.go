@@ -19,6 +19,7 @@ type SelectQuery struct {
 	joins    []string
 	limit    string
 	offset   string
+	cte      string
 	orderBys []string
 	groupBys []string
 }
@@ -73,6 +74,12 @@ func (q *SelectQuery) Offset(offset int) *SelectQuery {
 	return q
 }
 
+// With adds a Common Table Expressions to the beginning of the query
+func (q *SelectQuery) With(cte string, params ...interface{}) *SelectQuery {
+	q.cte = cte
+	q.params = append(q.params, params...)
+}
+
 // Load will execute the query and scan the result into the given struct
 func (q *SelectQuery) Load(value interface{}) (int, error) {
 	return query(q.ctx, q.runner, q, value)
@@ -99,6 +106,11 @@ func (q *SelectQuery) Params() []interface{} {
 
 // Build renders the SELECT query as a string
 func (q *SelectQuery) Build(buf *bytes.Buffer) error {
+	if q.cte {
+		buf.WriteString(q.cte)
+		buf.WriteString( " ")
+	}
+
 	buf.WriteString("SELECT ")
 
 	if len(q.columns) > 0 {

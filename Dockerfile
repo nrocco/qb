@@ -1,12 +1,15 @@
 # syntax = docker/dockerfile:1-experimental
 FROM --platform=${BUILDPLATFORM} golang:alpine AS godev
-RUN apk add --no-cache \
+RUN apk upgrade \
+    && apk add --no-cache \
         ca-certificates \
         gcc \
         musl-dev \
     && true
 RUN go install golang.org/x/lint/golint@latest
+RUN go install golang.org/x/tools/cmd/deadcode@latest
 RUN go install golang.org/x/tools/cmd/goimports@latest
+RUN go install golang.org/x/vuln/cmd/govulncheck@latest
 RUN go install honnef.co/go/tools/cmd/staticcheck@latest
 WORKDIR /src
 
@@ -25,4 +28,6 @@ COPY . .
 RUN --mount=type=cache,target=/root/.cache/go-build golint -set_exit_status ./...
 RUN --mount=type=cache,target=/root/.cache/go-build go vet -v ./...
 RUN --mount=type=cache,target=/root/.cache/go-build staticcheck ./...
-RUN --mount=type=cache,target=/root/.cache/go-build go test -v -short ./...
+RUN --mount=type=cache,target=/root/.cache/go-build govulncheck ./...
+RUN --mount=type=cache,target=/root/.cache/go-build deadcode .
+RUN --mount=type=cache,target=/root/.cache/go-build go test -v -cover -short ./...
