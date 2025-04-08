@@ -78,6 +78,7 @@ func (q *SelectQuery) Offset(offset int) *SelectQuery {
 func (q *SelectQuery) With(cte string, params ...interface{}) *SelectQuery {
 	q.cte = cte
 	q.params = append(q.params, params...)
+	return q
 }
 
 // Load will execute the query and scan the result into the given struct
@@ -106,9 +107,9 @@ func (q *SelectQuery) Params() []interface{} {
 
 // Build renders the SELECT query as a string
 func (q *SelectQuery) Build(buf *bytes.Buffer) error {
-	if q.cte {
+	if q.cte != "" {
 		buf.WriteString(q.cte)
-		buf.WriteString( " ")
+		buf.WriteString(" ")
 	}
 
 	buf.WriteString("SELECT ")
