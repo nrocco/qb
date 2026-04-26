@@ -70,6 +70,19 @@ func TestInsertQuery(t *testing.T) {
 			values: []interface{}{"value1"},
 		},
 		{
+			name: "insert with on conflict and returning",
+			query: func() *InsertQuery {
+				query := &InsertQuery{table: "fuu"}
+				query.Columns("column1")
+				query.Values("value1")
+				query.OnConflict("column1", "column1=excluded.column1")
+				query.Returning("column1", "column2")
+				return query
+			},
+			result: "INSERT INTO fuu (column1) VALUES (?) ON CONFLICT (column1) DO UPDATE SET column1=excluded.column1 RETURNING column1, column2",
+			values: []interface{}{"value1"},
+		},
+		{
 			name: "insert record",
 			query: func() *InsertQuery {
 				record := struct {

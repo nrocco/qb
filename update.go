@@ -42,7 +42,14 @@ func (q *UpdateQuery) Returning(returning ...string) *UpdateQuery {
 
 // Params returns all parameters for the query
 func (q *UpdateQuery) Params() []interface{} {
-	return append(q.values, q.whereClause.params...)
+	total := len(q.values) + len(q.whereClause.params)
+	if total == 0 {
+		return nil
+	}
+	p := make([]interface{}, 0, total)
+	p = append(p, q.values...)
+	p = append(p, q.whereClause.params...)
+	return p
 }
 
 // Build renders the UPDATE query as a string

@@ -79,8 +79,15 @@ func (q *SelectQuery) With(cte string, params ...interface{}) *SelectQuery {
 
 // Params returns the parameters for this query
 func (q *SelectQuery) Params() []interface{} {
-	p := append(q.cteParams, q.joinParams...)
-	return append(p, q.whereClause.params...)
+	total := len(q.cteParams) + len(q.joinParams) + len(q.whereClause.params)
+	if total == 0 {
+		return nil
+	}
+	p := make([]interface{}, 0, total)
+	p = append(p, q.cteParams...)
+	p = append(p, q.joinParams...)
+	p = append(p, q.whereClause.params...)
+	return p
 }
 
 // Build renders the SELECT query as a string
