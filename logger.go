@@ -12,13 +12,10 @@ var (
 // Logger logs
 type Logger func(ctx context.Context, duration time.Duration, format string, v ...interface{})
 
-// GetLoggerCtx extracts a qb.Logger from the context
+// GetLoggerCtx extracts a qb.Logger from the context, or nil if none is set.
 func GetLoggerCtx(ctx context.Context) Logger {
-	if logger, ok := ctx.Value(loggerContextKey).(Logger); ok {
-		return logger
-	}
-
-	return func(ctx context.Context, duration time.Duration, format string, v ...interface{}) {}
+	logger, _ := ctx.Value(loggerContextKey).(Logger)
+	return logger
 }
 
 // WithLogger adds a qb.Logger to the context

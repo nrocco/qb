@@ -15,6 +15,9 @@ type loggedRunner struct {
 
 func (r loggedRunner) ExecContext(ctx context.Context, q string, args ...interface{}) (sql.Result, error) {
 	logger := GetLoggerCtx(ctx)
+	if logger == nil {
+		return r.inner.ExecContext(ctx, q, args...)
+	}
 	start := time.Now()
 	result, err := r.inner.ExecContext(ctx, q, args...)
 	logger(ctx, time.Since(start), "%s -- %v", q, args)
@@ -23,6 +26,9 @@ func (r loggedRunner) ExecContext(ctx context.Context, q string, args ...interfa
 
 func (r loggedRunner) QueryContext(ctx context.Context, q string, args ...interface{}) (*sql.Rows, error) {
 	logger := GetLoggerCtx(ctx)
+	if logger == nil {
+		return r.inner.QueryContext(ctx, q, args...)
+	}
 	start := time.Now()
 	rows, err := r.inner.QueryContext(ctx, q, args...)
 	logger(ctx, time.Since(start), "%s -- %v", q, args)
