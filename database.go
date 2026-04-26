@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"context"
 	"database/sql"
+	"errors"
 
 	// We assume sqlite
 	_ "modernc.org/sqlite"
@@ -26,29 +27,9 @@ func (c contextKey) String() string {
 	return "qb context key " + string(c)
 }
 
-// Executor holds a runner and provides factory methods for all query types.
-type Executor struct {
-	runner runner
-}
-
-// Select creates and returns a new SelectQuery
-func (e *Executor) Select() *SelectQuery {
-	return &SelectQuery{runner: e.runner}
-}
-
-// Insert creates and returns a new InsertQuery
-func (e *Executor) Insert() *InsertQuery {
-	return &InsertQuery{runner: e.runner}
-}
-
-// Update creates and returns a new UpdateQuery
-func (e *Executor) Update() *UpdateQuery {
-	return &UpdateQuery{runner: e.runner}
-}
-
-// Delete creates and returns a new DeleteQuery
-func (e *Executor) Delete() *DeleteQuery {
-	return &DeleteQuery{runner: e.runner}
+// DB represents the database
+type DB struct {
+	*sql.DB
 }
 
 // Open initializes the database
@@ -62,25 +43,52 @@ func Open(ctx context.Context, conn string) (*DB, error) {
 		return &DB{}, err
 	}
 
-	return &DB{DB: db, Executor: Executor{runner: db}}, nil
-}
-
-// DB represents the database
-type DB struct {
-	*sql.DB
-	Executor
-}
-
-// For returns the Executor for the active transaction in ctx, or the DB's own Executor.
-func (db *DB) For(ctx context.Context) *Executor {
-	if tx := GetTxCtx(ctx); tx != nil {
-		return &tx.Executor
-	}
-	return &db.Executor
+	return &DB{db}, nil
 }
 
 // BeginTx starts a transaction. The default isolation level is dependent on the driver.
 func (db *DB) BeginTx(ctx context.Context, opts *sql.TxOptions) (*Tx, error) {
 	tx, err := db.DB.BeginTx(ctx, opts)
-	return &Tx{Tx: tx, Executor: Executor{runner: tx}}, err
+	return &Tx{tx}, err
+}
+
+// Select creates and returns a new SelectQuery
+func (db *DB) Select() *SelectQuery { return &SelectQuery{} }
+
+// Insert creates and returns a new InsertQuery
+func (db *DB) Insert() *InsertQuery { return &InsertQuery{} }
+
+// Update creates and returns a new UpdateQuery
+func (db *DB) Update() *UpdateQuery { return &UpdateQuery{} }
+
+// Delete creates and returns a new DeleteQuery
+func (db *DB) Delete() *DeleteQuery { return &DeleteQuery{} }
+
+func (db *DB) runnerFor(ctx context.Context) runner {
+	if tx := GetTxCtx(ctx); tx != nil {
+		return tx.Tx
+	}
+	return db.DB
+}
+
+// Exec executes a write query, using the transaction in ctx if present
+func (db *DB) Exec(ctx context.Context, b Builder) (sql.Result, error) {
+	return exec(ctx, db.runnerFor(ctx), b)
+}
+
+// Load executes a read query and scans the results into dest
+func (db *DB) Load(ctx context.Context, b Builder, dest interface{}) (int, error) {
+	return query(ctx, db.runnerFor(ctx), b, dest)
+}
+
+// LoadValue executes a read query and scans the scalar result into dest
+func (db *DB) LoadValue(ctx context.Context, b Builder, dest interface{}) error {
+	rows, err := db.Load(ctx, b, dest)
+	if err != nil {
+		return err
+	}
+	if rows == 0 {
+		return errors.New("no records returned")
+	}
+	return nil
 }

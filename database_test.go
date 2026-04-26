@@ -24,13 +24,13 @@ func createTestDB(t *testing.T, schema string, fixtures string) *DB {
 	}
 
 	if schema != "" {
-		if _, err = db.Exec(schema); err != nil {
+		if _, err = db.DB.Exec(schema); err != nil {
 			t.Fatalf("Could not create test schema: %s", err)
 		}
 	}
 
 	if fixtures != "" {
-		if _, err = db.Exec(fixtures); err != nil {
+		if _, err = db.DB.Exec(fixtures); err != nil {
 			t.Fatalf("Could not load fixtures: %s", err)
 		}
 	}
@@ -53,19 +53,19 @@ func TestSelectFromDatabase(t *testing.T) {
 	defer db.Close()
 
 	ctx := context.TODO()
-	query := db.For(ctx).Select().From("notes").Columns("COUNT(id)")
+	q := db.Select().From("notes").Columns("COUNT(id)")
 
 	totalCount := 0
-	if err := query.LoadValue(ctx, &totalCount); err != nil {
+	if err := db.LoadValue(ctx, q, &totalCount); err != nil {
 		t.Fatal(err)
 	} else if totalCount != 2 {
 		t.Fatalf("Expected 2 record but got %d", totalCount)
 	}
 
-	query.Columns("*")
+	q.Columns("*")
 
 	notes := []*note{}
-	if _, err := query.Load(ctx, &notes); err != nil {
+	if _, err := db.Load(ctx, q, &notes); err != nil {
 		t.Fatal(err)
 	} else if len(notes) != 2 {
 		t.Fatalf("Expected 2 rows but got %d", len(notes))
@@ -83,11 +83,14 @@ func TestInsertIntoDatabase(t *testing.T) {
 		Content: "Test Content",
 	}
 
-	query := db.For(ctx).Insert().InTo("notes").Columns("name", "content").Record(&n).WriteID(&n.ID)
+	q := db.Insert().InTo("notes").Columns("name", "content").Record(&n)
 
-	if _, err := query.Exec(ctx); err != nil {
+	result, err := db.Exec(ctx, q)
+	if err != nil {
 		t.Fatal(err)
 	}
+
+	n.ID, _ = result.LastInsertId()
 
 	if n.ID != 1 {
 		t.Fatalf("Expected note.ID to be 1 but got %d", n.ID)
@@ -101,8 +104,7 @@ func TestUpdateIntoDatabase(t *testing.T) {
 	ctx := context.TODO()
 	n := note{}
 
-	preUpdateQuery := db.For(ctx).Select().From("notes").Where("id = ?", 1)
-	if _, err := preUpdateQuery.Load(ctx, &n); err != nil {
+	if _, err := db.Load(ctx, db.Select().From("notes").Where("id = ?", 1), &n); err != nil {
 		t.Fatal(err)
 	} else if n.Name != "Fuu" {
 		t.Fatalf("Expected Fuu but got %s", n.Name)
@@ -110,13 +112,11 @@ func TestUpdateIntoDatabase(t *testing.T) {
 		t.Fatalf("Expected note.ID to be 1 but got %d", n.ID)
 	}
 
-	updateQuery := db.For(ctx).Update().Table("notes").Set("name", "Bar").Where("id = ?", n.ID)
-	if _, err := updateQuery.Exec(ctx); err != nil {
+	if _, err := db.Exec(ctx, db.Update().Table("notes").Set("name", "Bar").Where("id = ?", n.ID)); err != nil {
 		t.Fatal(err)
 	}
 
-	postUpdateQuery := db.For(ctx).Select().From("notes")
-	if _, err := postUpdateQuery.Load(ctx, &n); err != nil {
+	if _, err := db.Load(ctx, db.Select().From("notes"), &n); err != nil {
 		t.Fatal(err)
 	} else if n.Name != "Bar" {
 		t.Fatalf("Expected Bar but got %s", n.Name)
@@ -132,20 +132,17 @@ func TestDeleteIntoDatabase(t *testing.T) {
 	ctx := context.TODO()
 	totalCount := 0
 
-	preDeleteQuery := db.For(ctx).Select().From("notes").Columns("COUNT(id)")
-	if err := preDeleteQuery.LoadValue(ctx, &totalCount); err != nil {
+	if err := db.LoadValue(ctx, db.Select().From("notes").Columns("COUNT(id)"), &totalCount); err != nil {
 		t.Fatal(err)
 	} else if totalCount != 1 {
 		t.Fatalf("Expected 1 record but got %d", totalCount)
 	}
 
-	deleteQuery := db.For(ctx).Delete().From("notes").Where("id = ?", 1)
-	if _, err := deleteQuery.Exec(ctx); err != nil {
+	if _, err := db.Exec(ctx, db.Delete().From("notes").Where("id = ?", 1)); err != nil {
 		t.Fatal(err)
 	}
 
-	postDeleteQuery := db.For(ctx).Select().From("notes").Columns("COUNT(id)")
-	if err := postDeleteQuery.LoadValue(ctx, &totalCount); err != nil {
+	if err := db.LoadValue(ctx, db.Select().From("notes").Columns("COUNT(id)"), &totalCount); err != nil {
 		t.Fatal(err)
 	} else if totalCount != 0 {
 		t.Fatalf("Expected 0 record but got %d", totalCount)

@@ -39,8 +39,8 @@ func TestForeignKeys(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	// Insert one record
-	if _, err := tx.Insert().InTo("track").Columns("id", "name", "artist").Values(14, "Fuubar", 3).Exec(ctx); err == nil {
+	// Insert one record — should fail due to foreign key constraint
+	if _, err := tx.Exec(ctx, tx.Insert().InTo("track").Columns("id", "name", "artist").Values(14, "Fuubar", 3)); err == nil {
 		t.Fatal("Expected a foreign key constraint error")
 	}
 
@@ -50,7 +50,7 @@ func TestForeignKeys(t *testing.T) {
 	}
 
 	// Check if 3 records exist
-	if err := db.For(ctx).Select().From("track").Columns("COUNT(id)").LoadValue(ctx, &totalCount); err != nil {
+	if err := db.LoadValue(ctx, db.Select().From("track").Columns("COUNT(id)"), &totalCount); err != nil {
 		t.Fatal(err)
 	} else if totalCount != 3 {
 		t.Fatalf("Expected 3 record but got %d", totalCount)

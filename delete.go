@@ -2,13 +2,10 @@ package qb
 
 import (
 	"bytes"
-	"context"
-	"database/sql"
 )
 
 // DeleteQuery represents a DELETE sql query
 type DeleteQuery struct {
-	runner runner
 	whereClause
 	table string
 }
@@ -23,11 +20,6 @@ func (q *DeleteQuery) From(table string) *DeleteQuery {
 func (q *DeleteQuery) Where(condition string, params ...interface{}) *DeleteQuery {
 	q.addWhere(condition, params...)
 	return q
-}
-
-// Exec executes the query
-func (q *DeleteQuery) Exec(ctx context.Context) (sql.Result, error) {
-	return exec(ctx, q.runner, q)
 }
 
 // Params returns the parameters for this query

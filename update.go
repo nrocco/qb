@@ -2,15 +2,12 @@ package qb
 
 import (
 	"bytes"
-	"context"
-	"database/sql"
 	"fmt"
 	"strings"
 )
 
 // UpdateQuery represents a UPDATE sql query
 type UpdateQuery struct {
-	runner runner
 	whereClause
 	table     string
 	columns   []string
@@ -41,11 +38,6 @@ func (q *UpdateQuery) Where(condition string, params ...interface{}) *UpdateQuer
 func (q *UpdateQuery) Returning(returning ...string) *UpdateQuery {
 	q.returning = returning
 	return q
-}
-
-// Exec executes the query
-func (q *UpdateQuery) Exec(ctx context.Context) (sql.Result, error) {
-	return exec(ctx, q.runner, q)
 }
 
 // Params returns all parameters for the query

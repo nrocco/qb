@@ -29,19 +29,16 @@ func TestSelectJSONFromDatabase(t *testing.T) {
 	defer db.Close()
 
 	ctx := context.TODO()
-	query := db.For(ctx).Select().From("names")
 
-	query.Columns("COUNT(name)")
 	totalCount := 0
-	if err := query.LoadValue(ctx, &totalCount); err != nil {
+	if err := db.LoadValue(ctx, db.Select().From("names").Columns("COUNT(name)"), &totalCount); err != nil {
 		t.Fatal(err)
 	} else if totalCount != 2 {
 		t.Fatalf("Expected 2 record but got %d", totalCount)
 	}
 
-	query.Columns("*")
 	names := []*name{}
-	if _, err := query.Load(ctx, &names); err != nil {
+	if _, err := db.Load(ctx, db.Select().From("names").Columns("*"), &names); err != nil {
 		t.Fatal(err)
 	} else if len(names) != 2 {
 		t.Fatalf("Expected 2 rows but got %d", len(names))
@@ -72,23 +69,15 @@ func TestInsertJSONIntoDatabase(t *testing.T) {
 
 	n := name{
 		Name: "Test Name",
-		Tags: Tags{
-			"tag1",
-			"tag2",
-		},
+		Tags: Tags{"tag1", "tag2"},
 	}
 
-	query := db.For(ctx).Insert().InTo("names").Columns("name", "tags").Record(&n)
-
-	if _, err := query.Exec(ctx); err != nil {
+	if _, err := db.Exec(ctx, db.Insert().InTo("names").Columns("name", "tags").Record(&n)); err != nil {
 		t.Fatal(err)
 	}
 
-	iQuery := db.For(ctx).Select().From("names").Columns("*").Where("name = ?", "Test Name")
-
 	fuu := name{}
-
-	if _, err := iQuery.Load(ctx, &fuu); err != nil {
+	if _, err := db.Load(ctx, db.Select().From("names").Columns("*").Where("name = ?", "Test Name"), &fuu); err != nil {
 		t.Fatal(err)
 	}
 

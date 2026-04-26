@@ -2,15 +2,12 @@ package qb
 
 import (
 	"bytes"
-	"context"
-	"errors"
 	"fmt"
 	"strings"
 )
 
 // SelectQuery represents a SELECT sql query
 type SelectQuery struct {
-	runner runner
 	whereClause
 	table      string
 	columns    []string
@@ -78,25 +75,6 @@ func (q *SelectQuery) With(cte string, params ...interface{}) *SelectQuery {
 	q.cte = cte
 	q.cteParams = append(q.cteParams, params...)
 	return q
-}
-
-// Load will execute the query and scan the result into the given value
-func (q *SelectQuery) Load(ctx context.Context, value interface{}) (int, error) {
-	return query(ctx, q.runner, q, value)
-}
-
-// LoadValue will execute the query and scan the scalar result into the given variable
-func (q *SelectQuery) LoadValue(ctx context.Context, value interface{}) error {
-	rows, err := query(ctx, q.runner, q, value)
-	if err != nil {
-		return err
-	}
-
-	if rows == 0 {
-		return errors.New("no records returned")
-	}
-
-	return nil
 }
 
 // Params returns the parameters for this query

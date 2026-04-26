@@ -20,28 +20,36 @@ go test -v -run TestSelectQuery ./...
 
 **qb** is a SQLite query builder for Go (`github.com/nrocco/qb`). It uses `modernc.org/sqlite` (pure Go — no CGo).
 
-### Two core interfaces (`database.go`)
+### Separation of concerns
 
-- **`Builder`** — implemented by all query types; has `Build(*bytes.Buffer)` (writes SQL) and `Params() []interface{}` (returns bind values).
-- **`Runner`** — abstracts `*sql.DB` and `*sql.Tx`; has `ExecContext` / `QueryContext`. Both the `DB` and `Tx` wrapper structs satisfy this.
+Query builders and execution are fully decoupled:
 
-### Query builders
+- **Builders** (`select.go`, `insert.go`, `update.go`, `delete.go`) are pure value objects. They implement the `Builder` interface (`Build(*bytes.Buffer) error` + `Params() []interface{}`), accumulate SQL state via fluent method chains, and have no reference to any database connection.
+- **`DB` and `Tx`** (`database.go`, `transaction.go`) own all execution. They provide factory methods that return bare builders, and execution methods that take a `Builder`:
 
-Each file (`select.go`, `insert.go`, `update.go`, `delete.go`) holds a query struct and fluent builder methods. All return `*QueryType` for chaining. The builder accumulates SQL fragments and params separately; rendering happens only at execution time.
+```go
+// Build — no DB reference needed
+q := db.Select().From("notes").Where("id = ?", 1).Limit(10)
 
-- **`SelectQuery`** — `From`, `Columns`, `Where`, `Join`, `OrderBy`, `GroupBy`, `Limit`, `Offset`, `With` (CTEs). Execute with `Load(dest)` (slice/struct via reflection) or `LoadValue(dest)` (scalar).
-- **`InsertQuery`** — `InTo`, `Columns`, `Values`, `Record` (struct introspection), `OrIgnore`, `OnConflict`, `Returning`. Execute with `Exec()`.
-- **`UpdateQuery`** — `Table`, `Set`, `Where`, `Returning`. Execute with `Exec()`.
-- **`DeleteQuery`** — `From`, `Where`. Execute with `Exec()`.
+// Execute
+count, err := db.Load(ctx, q, &notes)       // into slice/struct
+err  = db.LoadValue(ctx, q, &scalar)         // single value
+result, err := db.Exec(ctx, q)               // insert/update/delete
+id, _ := result.LastInsertId()
+```
+
+### DB vs Tx execution
+
+`DB.Exec/Load/LoadValue` auto-sniff a `*Tx` from context via `GetTxCtx(ctx)` and use it if present. `Tx.Exec/Load/LoadValue` always use the transaction's runner directly. To pass a transaction via context: `WithTx(ctx, tx)`.
+
+### Shared WHERE clause (`where.go`)
+
+`SelectQuery`, `UpdateQuery`, and `DeleteQuery` all embed `whereClause`, which provides `addWhere()` and `writeWhere()`. Each builder's `Where()` method delegates to `addWhere` and returns its own concrete type for fluent chaining.
 
 ### Execution pipeline (`execute.go`)
 
-`query()` and `exec()` are the shared helpers that build SQL, log duration via the context logger, resolve any active transaction from context, and execute against the `Runner`. `load()` uses reflection to scan rows into slices, structs, or scalars. Field mapping reads `db:` struct tags; without a tag, field names are converted CamelCase→snake_case via `structMap()` in `utils.go`.
+`query()` and `exec()` are the shared helpers. Both wrap the incoming runner with `loggedRunner`, which checks `GetLoggerCtx(ctx)` — if `nil`, the call passes through with zero overhead; otherwise it times and logs the query. Inject a logger via `WithLogger(ctx, fn)`.
 
-### Transaction context (`transaction.go`)
+### Struct scanning (`execute.go`, `utils.go`)
 
-`WitTx(ctx, tx)` stores a `*Tx` in the context. Query builders call `GetTxCtx(ctx)` at execution time and use that transaction automatically — callers don't need to thread the `Tx` through every query call explicitly.
-
-### Null types & JSON (`types.go`, `json.go`)
-
-`NullString`, `NullInt64`, `NullTime` wrap `sql.Null*` with proper JSON marshaling (`null` when invalid). `JSONValue` / `JSONScan` handle JSON/JSONB columns.
+`load()` uses reflection to scan rows into slices, structs, or scalars. Field mapping reads `db:` struct tags; without a tag, field names are converted CamelCase→snake_case via `structMap()`. `InsertQuery.Record()` uses the same `structMap` to populate values from a struct.

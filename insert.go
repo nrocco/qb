@@ -2,15 +2,12 @@ package qb
 
 import (
 	"bytes"
-	"context"
-	"database/sql"
 	"reflect"
 	"strings"
 )
 
 // InsertQuery represents a INSERT sql query
 type InsertQuery struct {
-	runner         runner
 	orIgnore       bool
 	table          string
 	columns        []string
@@ -18,7 +15,6 @@ type InsertQuery struct {
 	conflictColumn string
 	conflictSets   string
 	returning      []string
-	lastInsertID   *int64
 }
 
 // OrIgnore make the query behave using INSERT OR IGNORE INTO
@@ -58,12 +54,6 @@ func (q *InsertQuery) Returning(returning ...string) *InsertQuery {
 	return q
 }
 
-// WriteID registers an *int64 that Exec will populate with LastInsertId
-func (q *InsertQuery) WriteID(id *int64) *InsertQuery {
-	q.lastInsertID = id
-	return q
-}
-
 // Record populates Values from the struct fields matching Columns
 func (q *InsertQuery) Record(structValue interface{}) *InsertQuery {
 	value := reflect.Indirect(reflect.ValueOf(structValue))
@@ -82,22 +72,6 @@ func (q *InsertQuery) Record(structValue interface{}) *InsertQuery {
 	}
 
 	return q
-}
-
-// Exec executes the query
-func (q *InsertQuery) Exec(ctx context.Context) (sql.Result, error) {
-	result, err := exec(ctx, q.runner, q)
-	if err != nil {
-		return nil, err
-	}
-
-	if q.lastInsertID != nil {
-		if id, err := result.LastInsertId(); err == nil {
-			*q.lastInsertID = id
-		}
-	}
-
-	return result, nil
 }
 
 // Build renders the INSERT query as a string
