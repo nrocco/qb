@@ -10,18 +10,18 @@ import (
 
 // SelectQuery represents a SELECT sql query
 type SelectQuery struct {
-	runner
-	ctx      context.Context
-	table    string
-	wheres   []string
-	params   []interface{}
-	columns  []string
-	joins    []string
-	limit    string
-	offset   string
-	cte      string
-	orderBys []string
-	groupBys []string
+	runner runner
+	whereClause
+	table      string
+	columns    []string
+	joins      []string
+	joinParams []interface{}
+	limit      string
+	offset     string
+	cte        string
+	cteParams  []interface{}
+	orderBys   []string
+	groupBys   []string
 }
 
 // From is used to set the table to select from
@@ -39,14 +39,13 @@ func (q *SelectQuery) Columns(columns ...string) *SelectQuery {
 // Join adds a join to the select query
 func (q *SelectQuery) Join(join string, params ...interface{}) *SelectQuery {
 	q.joins = append(q.joins, join)
-	q.params = append(q.params, params...)
+	q.joinParams = append(q.joinParams, params...)
 	return q
 }
 
 // Where adds a where clause to the select query using *AND* strategy
 func (q *SelectQuery) Where(condition string, params ...interface{}) *SelectQuery {
-	q.wheres = append(q.wheres, condition)
-	q.params = append(q.params, params...)
+	q.addWhere(condition, params...)
 	return q
 }
 
@@ -74,21 +73,21 @@ func (q *SelectQuery) Offset(offset int) *SelectQuery {
 	return q
 }
 
-// With adds a Common Table Expressions to the beginning of the query
+// With adds a Common Table Expression to the beginning of the query
 func (q *SelectQuery) With(cte string, params ...interface{}) *SelectQuery {
 	q.cte = cte
-	q.params = append(q.params, params...)
+	q.cteParams = append(q.cteParams, params...)
 	return q
 }
 
-// Load will execute the query and scan the result into the given struct
-func (q *SelectQuery) Load(value interface{}) (int, error) {
-	return query(q.ctx, q.runner, q, value)
+// Load will execute the query and scan the result into the given value
+func (q *SelectQuery) Load(ctx context.Context, value interface{}) (int, error) {
+	return query(ctx, q.runner, q, value)
 }
 
 // LoadValue will execute the query and scan the scalar result into the given variable
-func (q *SelectQuery) LoadValue(value interface{}) error {
-	rows, err := query(q.ctx, q.runner, q, value)
+func (q *SelectQuery) LoadValue(ctx context.Context, value interface{}) error {
+	rows, err := query(ctx, q.runner, q, value)
 	if err != nil {
 		return err
 	}
@@ -102,7 +101,8 @@ func (q *SelectQuery) LoadValue(value interface{}) error {
 
 // Params returns the parameters for this query
 func (q *SelectQuery) Params() []interface{} {
-	return q.params
+	p := append(q.cteParams, q.joinParams...)
+	return append(p, q.whereClause.params...)
 }
 
 // Build renders the SELECT query as a string
@@ -128,10 +128,7 @@ func (q *SelectQuery) Build(buf *bytes.Buffer) error {
 		buf.WriteString(join)
 	}
 
-	if len(q.wheres) > 0 {
-		buf.WriteString(" WHERE ")
-		buf.WriteString(strings.Join(q.wheres, " AND "))
-	}
+	q.writeWhere(buf)
 
 	if len(q.groupBys) != 0 {
 		buf.WriteString(" GROUP BY ")

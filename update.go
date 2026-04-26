@@ -10,23 +10,21 @@ import (
 
 // UpdateQuery represents a UPDATE sql query
 type UpdateQuery struct {
-	runner
-	ctx       context.Context
+	runner runner
+	whereClause
 	table     string
-	wheres    []string
-	params    []interface{}
 	columns   []string
 	values    []interface{}
 	returning []string
 }
 
-// Table is used to set the table to update from
+// Table is used to set the table to update
 func (q *UpdateQuery) Table(table string) *UpdateQuery {
 	q.table = table
 	return q
 }
 
-// Set adds a column = value statement to the UPDATE querie's SET clause
+// Set adds a column = value statement to the UPDATE query's SET clause
 func (q *UpdateQuery) Set(column string, values ...interface{}) *UpdateQuery {
 	q.columns = append(q.columns, column)
 	q.values = append(q.values, values...)
@@ -35,25 +33,24 @@ func (q *UpdateQuery) Set(column string, values ...interface{}) *UpdateQuery {
 
 // Where adds a where clause to the update query using *AND* strategy
 func (q *UpdateQuery) Where(condition string, params ...interface{}) *UpdateQuery {
-	q.wheres = append(q.wheres, condition)
-	q.params = append(q.params, params...)
+	q.addWhere(condition, params...)
 	return q
 }
 
-// Returning specifies with columns to return after the UPDATE is successful
+// Returning specifies which columns to return after the UPDATE is successful
 func (q *UpdateQuery) Returning(returning ...string) *UpdateQuery {
 	q.returning = returning
 	return q
 }
 
 // Exec executes the query
-func (q *UpdateQuery) Exec() (sql.Result, error) {
-	return exec(q.ctx, q.runner, q)
+func (q *UpdateQuery) Exec(ctx context.Context) (sql.Result, error) {
+	return exec(ctx, q.runner, q)
 }
 
 // Params returns all parameters for the query
 func (q *UpdateQuery) Params() []interface{} {
-	return append(q.values, q.params...)
+	return append(q.values, q.whereClause.params...)
 }
 
 // Build renders the UPDATE query as a string
@@ -68,10 +65,7 @@ func (q *UpdateQuery) Build(buf *bytes.Buffer) error {
 	}
 	buf.WriteString(strings.Join(sets, ", "))
 
-	if len(q.wheres) > 0 {
-		buf.WriteString(" WHERE ")
-		buf.WriteString(strings.Join(q.wheres, " AND "))
-	}
+	q.writeWhere(buf)
 
 	if len(q.returning) > 0 {
 		buf.WriteString(" RETURNING ")

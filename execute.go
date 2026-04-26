@@ -5,9 +5,31 @@ import (
 	"context"
 	"database/sql"
 	"reflect"
+	"time"
 )
 
-func query(ctx context.Context, runner runner, builder Builder, dest interface{}) (int, error) {
+// TODO how to conditionally add loggedRunner
+type loggedRunner struct {
+	inner runner
+}
+
+func (r loggedRunner) ExecContext(ctx context.Context, q string, args ...interface{}) (sql.Result, error) {
+	logger := GetLoggerCtx(ctx)
+	start := time.Now()
+	result, err := r.inner.ExecContext(ctx, q, args...)
+	logger(ctx, time.Since(start), "%s -- %v", q, args)
+	return result, err
+}
+
+func (r loggedRunner) QueryContext(ctx context.Context, q string, args ...interface{}) (*sql.Rows, error) {
+	logger := GetLoggerCtx(ctx)
+	start := time.Now()
+	rows, err := r.inner.QueryContext(ctx, q, args...)
+	logger(ctx, time.Since(start), "%s -- %v", q, args)
+	return rows, err
+}
+
+func query(ctx context.Context, r runner, builder Builder, dest interface{}) (int, error) {
 	buf := bytes.Buffer{}
 
 	err := builder.Build(&buf)
@@ -15,7 +37,7 @@ func query(ctx context.Context, runner runner, builder Builder, dest interface{}
 		return 0, err
 	}
 
-	rows, err := runner.QueryContext(ctx, buf.String(), builder.Params()...)
+	rows, err := loggedRunner{r}.QueryContext(ctx, buf.String(), builder.Params()...)
 	if err != nil {
 		return 0, err
 	}
@@ -28,7 +50,7 @@ func query(ctx context.Context, runner runner, builder Builder, dest interface{}
 	return count, nil
 }
 
-func exec(ctx context.Context, runner runner, builder Builder) (sql.Result, error) {
+func exec(ctx context.Context, r runner, builder Builder) (sql.Result, error) {
 	buf := bytes.Buffer{}
 
 	err := builder.Build(&buf)
@@ -36,7 +58,7 @@ func exec(ctx context.Context, runner runner, builder Builder) (sql.Result, erro
 		return nil, err
 	}
 
-	result, err := runner.ExecContext(ctx, buf.String(), builder.Params()...)
+	result, err := loggedRunner{r}.ExecContext(ctx, buf.String(), builder.Params()...)
 	if err != nil {
 		return nil, err
 	}

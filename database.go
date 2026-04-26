@@ -4,7 +4,6 @@ import (
 	"bytes"
 	"context"
 	"database/sql"
-	"time"
 
 	// We assume sqlite
 	_ "modernc.org/sqlite"
@@ -27,10 +26,33 @@ func (c contextKey) String() string {
 	return "qb context key " + string(c)
 }
 
+// Executor holds a runner and provides factory methods for all query types.
+type Executor struct {
+	runner runner
+}
+
+// Select creates and returns a new SelectQuery
+func (e *Executor) Select() *SelectQuery {
+	return &SelectQuery{runner: e.runner}
+}
+
+// Insert creates and returns a new InsertQuery
+func (e *Executor) Insert() *InsertQuery {
+	return &InsertQuery{runner: e.runner}
+}
+
+// Update creates and returns a new UpdateQuery
+func (e *Executor) Update() *UpdateQuery {
+	return &UpdateQuery{runner: e.runner}
+}
+
+// Delete creates and returns a new DeleteQuery
+func (e *Executor) Delete() *DeleteQuery {
+	return &DeleteQuery{runner: e.runner}
+}
+
 // Open initializes the database
 func Open(ctx context.Context, conn string) (*DB, error) {
-	var err error
-
 	db, err := sql.Open("sqlite", conn)
 	if err != nil {
 		return &DB{}, err
@@ -40,81 +62,25 @@ func Open(ctx context.Context, conn string) (*DB, error) {
 		return &DB{}, err
 	}
 
-	return &DB{db}, nil
+	return &DB{DB: db, Executor: Executor{runner: db}}, nil
 }
 
 // DB represents the database
 type DB struct {
 	*sql.DB
+	Executor
 }
 
-// Delete creates and returns a new instance of DeleteQuery for the specified table
-func (db *DB) Delete(ctx context.Context) *DeleteQuery {
+// For returns the Executor for the active transaction in ctx, or the DB's own Executor.
+func (db *DB) For(ctx context.Context) *Executor {
 	if tx := GetTxCtx(ctx); tx != nil {
-		return tx.Delete(ctx)
+		return &tx.Executor
 	}
-	return &DeleteQuery{
-		ctx:    ctx,
-		runner: db,
-	}
+	return &db.Executor
 }
 
-// Insert creates and returns a new instance of InsertQuery for the specified table
-func (db *DB) Insert(ctx context.Context) *InsertQuery {
-	if tx := GetTxCtx(ctx); tx != nil {
-		return tx.Insert(ctx)
-	}
-	return &InsertQuery{
-		ctx:    ctx,
-		runner: db,
-	}
-}
-
-// Select creates and returns a new instance of SelectQuery for the specified table
-func (db *DB) Select(ctx context.Context) *SelectQuery {
-	if tx := GetTxCtx(ctx); tx != nil {
-		return tx.Select(ctx)
-	}
-	return &SelectQuery{
-		ctx:    ctx,
-		runner: db,
-	}
-}
-
-// Update creates and returns a new instance of UpdateQuery for the specified table
-func (db *DB) Update(ctx context.Context) *UpdateQuery {
-	if tx := GetTxCtx(ctx); tx != nil {
-		return tx.Update(ctx)
-	}
-	return &UpdateQuery{
-		ctx:    ctx,
-		runner: db,
-	}
-}
-
-// BeginTx starts a transaction. The default isolation level is dependent on the driver
+// BeginTx starts a transaction. The default isolation level is dependent on the driver.
 func (db *DB) BeginTx(ctx context.Context, opts *sql.TxOptions) (*Tx, error) {
 	tx, err := db.DB.BeginTx(ctx, opts)
-
-	return &Tx{tx}, err
-}
-
-// ExecContext executes a query without returning any rows. The args are for any placeholder parameters in the query
-func (db *DB) ExecContext(ctx context.Context, query string, args ...interface{}) (sql.Result, error) {
-	logger := GetLoggerCtx(ctx)
-	start := time.Now()
-	result, err := db.DB.ExecContext(ctx, query, args...)
-	end := time.Now()
-	logger(ctx, end.Sub(start), "%s -- %v", query, args)
-	return result, err
-}
-
-// QueryContext executes a query that returns rows, typically a SELECT. The args are for any placeholder parameters in the query.
-func (db *DB) QueryContext(ctx context.Context, query string, args ...interface{}) (*sql.Rows, error) {
-	logger := GetLoggerCtx(ctx)
-	start := time.Now()
-	rows, err := db.DB.QueryContext(ctx, query, args...)
-	end := time.Now()
-	logger(ctx, end.Sub(start), "%s -- %v", query, args)
-	return rows, err
+	return &Tx{Tx: tx, Executor: Executor{runner: tx}}, err
 }

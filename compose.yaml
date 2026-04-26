@@ -4,9 +4,9 @@ services:
     image: "python:alpine"
     init: true
     command: ["sleep", "infinity"]
-    working_dir: "${PWD}"
+    working_dir: "/src"
     volumes:
-      - "${PWD}:${PWD}"
+      - ".:/src"
       - "python_cache:/usr/local/lib/python3.12/site-packages"
   go:
     build:
@@ -14,9 +14,9 @@ services:
       target: godev
     init: true
     command: ["sleep", "infinity"]
-    working_dir: "${PWD}"
+    working_dir: "/src"
     volumes:
-      - "${PWD}:${PWD}"
+      - ".:/src"
       - "go_cache:/root/.cache"
       - "go_pkg:/go/pkg"
 volumes:

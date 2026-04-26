@@ -10,8 +10,7 @@ import (
 
 // InsertQuery represents a INSERT sql query
 type InsertQuery struct {
-	runner
-	ctx            context.Context
+	runner         runner
 	orIgnore       bool
 	table          string
 	columns        []string
@@ -19,7 +18,7 @@ type InsertQuery struct {
 	conflictColumn string
 	conflictSets   string
 	returning      []string
-	recordID       reflect.Value
+	lastInsertID   *int64
 }
 
 // OrIgnore make the query behave using INSERT OR IGNORE INTO
@@ -40,43 +39,33 @@ func (q *InsertQuery) Columns(columns ...string) *InsertQuery {
 	return q
 }
 
-// Values determines the columns to insert
+// Values determines the values to insert
 func (q *InsertQuery) Values(values ...interface{}) *InsertQuery {
 	q.values = values
 	return q
 }
 
-// OnConflict specifies what to do if there is conflict
+// OnConflict specifies what to do if there is a conflict
 func (q *InsertQuery) OnConflict(column string, sets string) *InsertQuery {
 	q.conflictColumn = column
 	q.conflictSets = sets
 	return q
 }
 
-// Returning specifies with columns to return after the INSERT is successful
+// Returning specifies which columns to return after the INSERT is successful
 func (q *InsertQuery) Returning(returning ...string) *InsertQuery {
 	q.returning = returning
 	return q
 }
 
-// Exec executes the query
-func (q *InsertQuery) Exec() (sql.Result, error) {
-	result, err := exec(q.ctx, q.runner, q)
-	if err != nil {
-		return nil, err
-	}
-
-	if q.recordID.IsValid() {
-		if id, err := result.LastInsertId(); err == nil {
-			q.recordID.SetInt(id)
-		}
-	}
-
-	return result, nil
+// WriteID registers an *int64 that Exec will populate with LastInsertId
+func (q *InsertQuery) WriteID(id *int64) *InsertQuery {
+	q.lastInsertID = id
+	return q
 }
 
-// Record scans the result of the query into the given struct
-func (q *InsertQuery) Record(structValue interface{}) {
+// Record populates Values from the struct fields matching Columns
+func (q *InsertQuery) Record(structValue interface{}) *InsertQuery {
 	value := reflect.Indirect(reflect.ValueOf(structValue))
 
 	if value.Kind() == reflect.Struct {
@@ -89,17 +78,26 @@ func (q *InsertQuery) Record(structValue interface{}) {
 				values = append(values, nil)
 			}
 		}
-
-		for _, name := range []string{"Id", "ID"} {
-			field := value.FieldByName(name)
-			if field.IsValid() && field.Kind() == reflect.Int64 {
-				q.recordID = field
-				break
-			}
-		}
-
 		q.Values(values...)
 	}
+
+	return q
+}
+
+// Exec executes the query
+func (q *InsertQuery) Exec(ctx context.Context) (sql.Result, error) {
+	result, err := exec(ctx, q.runner, q)
+	if err != nil {
+		return nil, err
+	}
+
+	if q.lastInsertID != nil {
+		if id, err := result.LastInsertId(); err == nil {
+			*q.lastInsertID = id
+		}
+	}
+
+	return result, nil
 }
 
 // Build renders the INSERT query as a string
