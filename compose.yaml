@@ -1,13 +1,5 @@
 ---
 services:
-  python:
-    image: "python:alpine"
-    init: true
-    command: ["sleep", "infinity"]
-    working_dir: "/src"
-    volumes:
-      - ".:/src"
-      - "python_cache:/usr/local/lib/python3.12/site-packages"
   go:
     build:
       context: .
@@ -20,6 +12,5 @@ services:
       - "go_cache:/root/.cache"
       - "go_pkg:/go/pkg"
 volumes:
-  go_cache:
-  go_pkg:
-  python_cache:
+  go_cache: {}
+  go_pkg: {}
