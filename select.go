@@ -10,6 +10,8 @@ import (
 type SelectQuery struct {
 	whereClause
 	table      string
+	subquery   Builder
+	subqueryAs string
 	columns    []string
 	joins      []string
 	joinParams []interface{}
@@ -24,6 +26,13 @@ type SelectQuery struct {
 // From is used to set the table to select from
 func (q *SelectQuery) From(table string) *SelectQuery {
 	q.table = table
+	return q
+}
+
+// FromSubquery uses a subquery as the FROM source: FROM (subquery) alias
+func (q *SelectQuery) FromSubquery(alias string, sub Builder) *SelectQuery {
+	q.subquery = sub
+	q.subqueryAs = alias
 	return q
 }
 
@@ -79,12 +88,17 @@ func (q *SelectQuery) With(cte string, params ...interface{}) *SelectQuery {
 
 // Params returns the parameters for this query
 func (q *SelectQuery) Params() []interface{} {
-	total := len(q.cteParams) + len(q.joinParams) + len(q.whereClause.params)
+	var subParams []interface{}
+	if q.subquery != nil {
+		subParams = q.subquery.Params()
+	}
+	total := len(q.cteParams) + len(subParams) + len(q.joinParams) + len(q.whereClause.params)
 	if total == 0 {
 		return nil
 	}
 	p := make([]interface{}, 0, total)
 	p = append(p, q.cteParams...)
+	p = append(p, subParams...)
 	p = append(p, q.joinParams...)
 	p = append(p, q.whereClause.params...)
 	return p
@@ -106,7 +120,16 @@ func (q *SelectQuery) Build(buf *bytes.Buffer) error {
 	}
 
 	buf.WriteString(" FROM ")
-	buf.WriteString(q.table)
+	if q.subquery != nil {
+		buf.WriteString("(")
+		if err := q.subquery.Build(buf); err != nil {
+			return err
+		}
+		buf.WriteString(") ")
+		buf.WriteString(q.subqueryAs)
+	} else {
+		buf.WriteString(q.table)
+	}
 
 	for _, join := range q.joins {
 		buf.WriteString(" ")

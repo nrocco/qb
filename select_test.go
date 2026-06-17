@@ -136,6 +136,32 @@ func TestSelectQuery(t *testing.T) {
 			result: "SELECT COUNT(f.id) FROM fuu f LEFT JOIN bar b ON b.fuu_id = f.id WHERE f.name = ? GROUP BY b.id ORDER BY f.name ASC NULLS FIRST LIMIT 5 OFFSET 0",
 			values: []interface{}{"something"},
 		},
+		{
+			name: "select from subquery",
+			query: func() *SelectQuery {
+				inner := &SelectQuery{table: "fuu"}
+				inner.Where("archived = ?", false)
+				outer := &SelectQuery{}
+				outer.FromSubquery("sub", inner)
+				outer.Columns("id", "title")
+				return outer
+			},
+			result: "SELECT id, title FROM (SELECT * FROM fuu WHERE archived = ?) sub",
+			values: []interface{}{false},
+		},
+		{
+			name: "select from subquery with outer where",
+			query: func() *SelectQuery {
+				inner := &SelectQuery{table: "fuu"}
+				inner.Where("archived = ?", false)
+				outer := &SelectQuery{}
+				outer.FromSubquery("sub", inner)
+				outer.Where("title = ?", "hello")
+				return outer
+			},
+			result: "SELECT * FROM (SELECT * FROM fuu WHERE archived = ?) sub WHERE title = ?",
+			values: []interface{}{false, "hello"},
+		},
 	}
 
 	for _, tst := range testResults {
