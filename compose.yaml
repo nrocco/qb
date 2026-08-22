@@ -5,6 +5,7 @@ services:
       context: .
       target: godev
     init: true
+    restart: unless-stopped
     command: ["sleep", "infinity"]
     working_dir: "/src"
     volumes:
