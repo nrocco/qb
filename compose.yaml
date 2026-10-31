@@ -9,7 +9,7 @@ services:
     command: ["sleep", "infinity"]
     working_dir: "/src"
     volumes:
-      - ".:/src"
+      - "./:/src/"
       - "go_cache:/root/.cache"
       - "go_pkg:/go/pkg"
 volumes:
